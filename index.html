@@ -1258,9 +1258,23 @@ const sessions = () => { try { return JSON.parse(localStorage.getItem(SESS_KEY))
 function saveSession(code, pid) { const m = sessions(); m[code] = pid; localStorage.setItem(SESS_KEY, JSON.stringify(m)); }
 function dropSession(code) { const m = sessions(); delete m[code]; localStorage.setItem(SESS_KEY, JSON.stringify(m)); }
 
+// 안드로이드 뒤로가기 — 방 안에서는 history 에 한 칸 얹어두고, back 으로 그 칸이 빠지면 다시 얹는다(사이트가 닫히지 않게).
+// 상품 화면처럼 되돌아갈 곳이 있는 하위 화면은 navPush 로 한 칸 더 쌓고, back 때 그 함수를 실행한다.
+// 폴링이 기본 화면(대기·레이스·결과)을 새로 그리면 쌓인 하위 화면은 무효 → navStack 을 비운다
+const navStack = [];
+function navPush(onBack) { navStack.push(onBack); try { history.pushState({ sub: navStack.length }, ''); } catch (_) {} }
+function navRoot() { navStack.length = 0; }
+window.addEventListener('popstate', () => {
+  if (navStack.length) return navStack.pop()();
+  if (myId) try { history.pushState({ room: 1 }, ''); } catch (_) {}
+});
+
+function navEnterRoom() { try { history.pushState({ room: 1 }, ''); } catch (_) {} }
+
 function enter(pid) {
   keepAwake();
   myId = pid;
+  navEnterRoom();
   localStorage.setItem('marble_pid', myId);
   localStorage.removeItem(OPENED_KEY);
   lastPhase = null;
@@ -1292,6 +1306,7 @@ async function joinRoom(code, nick) {
 }
 
 function screenLobby(s) {
+  navRoot();
   render(`
     <span class="badge">${s.join_count}명 입장</span>
     <div class="logo"><span class="coin big">₩</span></div>
@@ -1302,6 +1317,7 @@ function screenLobby(s) {
 }
 
 function screenRacing(s) {
+  navRoot();
   render(`
     <p class="emoji pop">🏁</p>
     <h1>레이스 진행 중!</h1>
@@ -1318,6 +1334,7 @@ function clearCurrent() {
 }
 function leave() {
   clearCurrent();
+  navRoot();
   // QR 로 들어온 주소(?r=코드)를 지워서, 다른 방 코드를 넣을 수 있는 일반 입구로
   if (urlCode) { urlCode = ''; try { history.replaceState(null, '', location.pathname); } catch (_) {} }
   screenEntry();
@@ -1383,6 +1400,7 @@ function confetti() {
 let reward = null;
 async function screenResult(s) {
   me = s;
+  navRoot();
   setMedalBg(s.final_rank);
   render(`<p class="rank pop">${s.final_rank || '–'}<small>등</small></p><p class="sub">결과 확인 중…</p>`);
   try { reward = await rpc('marble_my_reward', { p_id: myId }); }   // 매번 서버에서 새로 받는다 (캐시 안 함)
@@ -1395,8 +1413,15 @@ async function screenResult(s) {
     return;
   }
   // 상품을 이미 연 적이 있으면 바코드 화면으로 바로
-  if (reward.kind === 'prize' && localStorage.getItem(OPENED_KEY) === myId) return screenPrize(reward);
+  if (reward.kind === 'prize' && localStorage.getItem(OPENED_KEY) === myId) return openPrize();
   screenRank(s);
+}
+
+// 상품 화면 — history 한 칸 쌓아서 안드로이드 back 이 결과 화면으로 돌아오게
+function openPrize() {
+  localStorage.setItem(OPENED_KEY, myId);
+  navPush(() => screenRank(me));
+  screenPrize(reward);
 }
 
 /* 결과 화면 — 등수 + 버튼 하나. 1·2·3등(prize)은 버튼 → 바코드, 나머지는 버튼이 곧 굿딜 링크 */
@@ -1416,12 +1441,12 @@ function screenRank(s) {
       ? `<button class="goodeal-btn" id="claim">🎁 상품 받기</button>`
       : `${reward && reward.text ? `<p class="ctext">${esc(reward.text)}</p>` : ''}
          ${reward && reward.url ? `<a class="goodeal-btn" href="${esc(reward.url)}" target="_blank" rel="noopener">플링크 7% 할인 받기</a>` : ''}`}
-    ${isPrize ? '' : surveyCard()}
+    ${surveyCard()}
     ${boardToggle()}
   `);
   if (top3) confetti();
-  if (isPrize) document.getElementById('claim').onclick = () => { localStorage.setItem(OPENED_KEY, myId); screenPrize(reward); };
-  else bindSurvey();
+  if (isPrize) document.getElementById('claim').onclick = openPrize;
+  bindSurvey();
   bindBoard();
 }
 
@@ -1911,7 +1936,7 @@ window.addEventListener('resize', () => { if (mode === 'race') resize(); });
    ============================================================ */
 const savedHostRoom = localStorage.getItem(HOST_ROOM_KEY);
 if (savedHostRoom && !urlCode) openHostRoom(savedHostRoom);
-else if (myId) poll();
+else if (myId) { navEnterRoom(); poll(); }
 else if (urlCode && sessions()[urlCode]) resumeSession(urlCode).then(ok => { if (!ok) screenEntry(); });
 else screenEntry();
 document.addEventListener('visibilitychange', () => { if (!document.hidden && myId) poll(); });
