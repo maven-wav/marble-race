@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0d17">
-<title>구슬 레이스 추첨</title>
+<meta name="theme-color" content="#FFF7DC">
+<title>굴러라 페이</title>
 <!-- 굿딜 버튼용 서체. 로드 실패 시 시스템 폰트로 폴백 — 이 CDN 만 예외 허용 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
 <script>
@@ -349,210 +349,217 @@ var QRMini = (function () {
 })();
 </script>
 <style>
-:root{--bg:#0b0d17;--card:#161a2b;--line:#272c45;--ink:#f2f4ff;--dim:#8b93b8;--accent:#6c7bff;
-      --win:#34d399;--lose:#f87171;--gold:#fbbf24;--silver:#cbd5e1;--bronze:#d97757;--ok:#34d399;--bad:#f87171}
+/* ===== 굴러라 페이 — 카툰/스티커 톤 =====
+   크림 배경 + 남색 3px 외곽선 + 단색 오프셋 그림자 + 카카오페이 옐로 포인트.
+   블러·그라데이션 애니메이션은 쓰지 않는다 (저사양·격리 브라우저에서 끊김) */
+:root{--cream:#FFF7DC;--paper:#FFFDF5;--navy:#1E2140;--ink:#23253F;--dim:#6B6F8A;--line:#1E2140;
+  --yellow:#FFEB00;--yellow2:#F2DE00;--gold:#F6C445;--gold2:#C98A16;--silver:#D5D9E3;--silver2:#8D93A5;
+  --bronze:#D98A52;--bronze2:#8E4E22;--mint:#6FD3A7;--coral:#FF7A6B;--sky:#6BB8FF;--bad:#D9483B;--ok:#2FA87A;
+  --board:#1B2148;--board2:#242B5E;--accent:#FFEB00}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);
+body{background:var(--cream);color:var(--ink);
   font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
-  display:flex;flex-direction:column;min-height:100dvh;transition:background .4s;
+  display:flex;flex-direction:column;min-height:100dvh;
   padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
-/* 호스트 모드 — 화면 꽉 채우기 */
-body.host{padding:0;height:100vh;overflow:hidden;
-  background:radial-gradient(1200px 700px at 50% -10%,#1a2040 0%,var(--bg) 60%)}
+body.host{padding:0;height:100vh;overflow:hidden;background:var(--cream)}
 body.host .wrap,body.host .foot{display:none}
-.wrap{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;
+.wrap{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:16px;
   text-align:center;max-width:460px;margin:0 auto;width:100%}
-h1{font-size:1.45rem;margin:0;font-weight:800;letter-spacing:-.02em}
-.sub{color:var(--dim);font-size:.95rem;margin:0;line-height:1.5}
-.emoji{font-size:clamp(4rem,26vw,7rem);line-height:1;margin:0;user-select:none;-webkit-user-select:none}
-input{width:100%;padding:16px 18px;font-size:1.1rem;border-radius:14px;
-  border:1px solid var(--line);background:var(--card);color:var(--ink);outline:none;font-family:inherit}
-input:focus{border-color:var(--accent)}
-input.code{text-transform:uppercase;letter-spacing:.2em;font-weight:800;text-align:center;font-family:ui-monospace,Menlo,monospace}
-button{font-family:inherit;font-weight:800;border:0;border-radius:14px;cursor:pointer;
-  background:var(--accent);color:#fff;padding:16px 22px;font-size:1.1rem;width:100%}
-button:disabled{opacity:.45}
-button.ghost{background:transparent;border:1px solid var(--line);color:var(--dim)}
-button.link{background:transparent;color:var(--dim);font-size:.9rem;font-weight:700;padding:8px;width:auto}
-button.link:hover{color:var(--ink)}
-.badge{display:inline-block;padding:5px 13px;border-radius:999px;background:var(--card);
-  border:1px solid var(--line);color:var(--dim);font-size:.82rem;font-weight:700}
-.badge.prize{border-color:#5a4a12;background:#1d1805;color:var(--gold)}
-.badge.practice{border-color:#2a3350;color:#7f88b0}
-.badge .brand{height:1.5em;width:auto;vertical-align:middle;margin-right:.2em;border-radius:50%}
-.err{color:var(--lose);font-size:.88rem;min-height:1.2em;margin:0}
+h1{font-size:1.9rem;margin:0;font-weight:900;letter-spacing:-.04em;color:var(--navy);text-shadow:2px 2px 0 var(--yellow)}
+.sub{color:var(--dim);font-size:.95rem;margin:0;line-height:1.5;font-weight:700}
+input{width:100%;padding:15px 16px;font-size:1.05rem;border-radius:16px;font-weight:700;
+  border:3px solid var(--navy);background:#fff;color:var(--ink);outline:none;font-family:inherit}
+input::placeholder{color:#A0A3B8;font-weight:700}
+input:focus{box-shadow:0 0 0 3px var(--yellow)}
+input.code{text-transform:uppercase;letter-spacing:.2em;font-weight:900;text-align:center;font-family:ui-monospace,Menlo,monospace}
+button{font-family:inherit;font-weight:900;border:3px solid var(--navy);border-radius:18px;cursor:pointer;
+  background:var(--yellow);color:var(--navy);padding:14px 20px;font-size:1.05rem;width:100%;
+  box-shadow:0 5px 0 var(--navy);letter-spacing:-.02em;transition:transform .06s,box-shadow .06s}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--navy)}
+button:disabled{opacity:.45;transform:none;box-shadow:0 5px 0 var(--navy)}
+button.ghost{background:var(--paper);color:var(--ink)}
+button.link{background:transparent;border:0;box-shadow:none;color:var(--dim);font-size:.9rem;font-weight:800;padding:8px;width:auto}
+button.link:active{transform:none}
+.badge{display:inline-flex;align-items:center;gap:.35em;padding:6px 13px;border-radius:999px;background:#fff;
+  border:2.5px solid var(--navy);color:var(--ink);font-size:.85rem;font-weight:800;box-shadow:0 3px 0 var(--navy)}
+.badge.prize{background:var(--yellow)}
+.badge.practice{background:#E8F7EF}
+.badge .brand{height:1.5em;width:auto;vertical-align:middle;border-radius:50%}
+.err{color:var(--bad);font-size:.88rem;font-weight:800;min-height:1.2em;margin:0}
+
+/* 동전 (CSS) */
+.coin{display:inline-grid;place-items:center;border-radius:50%;font-weight:900;color:var(--navy);
+  background:radial-gradient(circle at 35% 30%,#FFF3B0,var(--gold) 55%,var(--gold2));
+  border:3px solid var(--navy);box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),0 5px 0 var(--navy)}
+.coin.t1{background:radial-gradient(circle at 35% 30%,#fff,var(--silver) 55%,var(--silver2))}
+.coin.t2{background:radial-gradient(circle at 35% 30%,#FFD9B8,var(--bronze) 55%,var(--bronze2))}
+.coin.big{width:104px;height:104px;font-size:50px;transform:rotate(-12deg)}
+.coin.mid{width:72px;height:72px;font-size:34px}
+.coin.xs{width:20px;height:20px;font-size:10px;border-width:2px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.logo{position:relative;display:inline-block;margin:0 auto;user-select:none;-webkit-user-select:none;cursor:default}
+.logo .lines{position:absolute;left:-26px;top:36px;width:22px}
+.logo .lines b{display:block;height:4px;background:var(--navy);border-radius:2px;margin:6px 0}
+.logo .lines b:nth-child(2){width:70%}.logo .lines b:nth-child(3){width:45%}
+.medalcoin{position:relative;display:inline-block;margin-top:12px}
+.medalcoin .crown{position:absolute;top:-24px;left:50%;transform:translateX(-50%) rotate(-8deg);font-size:34px}
+.emoji{font-size:clamp(3.2rem,20vw,5.5rem);line-height:1;margin:0}
 
 /* 입구 카드 */
-.card{width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;
-  display:flex;flex-direction:column;gap:12px}
-.card input{background:#0d1120}
-.or{color:var(--dim);font-size:.8rem;margin:2px 0}
+.card{width:100%;background:var(--paper);border:3px solid var(--navy);border-radius:22px;padding:18px;
+  box-shadow:0 6px 0 var(--navy);display:flex;flex-direction:column;gap:12px}
+.or{color:var(--dim);font-size:.8rem;font-weight:800;margin:2px 0}
 .joinrow{display:flex;gap:8px}
 .joinrow input{flex:1;min-width:0}
-.joinrow button{width:auto;padding:16px 20px;white-space:nowrap}
+.joinrow button{width:auto;padding:14px 18px;white-space:nowrap}
 
-/* 호스트 모드 키패드 */
-.pinDots{font-size:1.6rem;letter-spacing:.3em;font-weight:900;color:var(--ink);min-height:1.4em;text-align:center}
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.keypad button{padding:16px 0;font-size:1.25rem;width:100%}
-.keypad #mkPrize{font-size:1rem}
-/* PIN 모달 */
-.modal{position:fixed;inset:0;z-index:30;background:rgba(7,9,18,.85);display:flex;align-items:center;justify-content:center;padding:4vh 16px;overflow:auto}
-.mbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;width:min(420px,100%);
-  display:flex;flex-direction:column;gap:14px;text-align:center}
-.mbox h2{margin:0;font-size:1.15rem;font-weight:900}
+/* 모달 */
+.modal{position:fixed;inset:0;z-index:30;background:rgba(30,33,64,.55);display:flex;align-items:center;justify-content:center;padding:4vh 16px;overflow:auto}
+.mbox{background:var(--paper);border:3px solid var(--navy);border-radius:22px;padding:22px;width:min(420px,100%);
+  box-shadow:0 8px 0 var(--navy);display:flex;flex-direction:column;gap:14px;text-align:center}
+.mbox h2{margin:0;font-size:1.2rem;font-weight:900;color:var(--navy)}
 .mbox .btns{display:flex;gap:8px}
 .mbox.wide{width:min(980px,100%);text-align:left;max-height:92vh;overflow:auto}
-
+.pinDots{font-size:1.6rem;letter-spacing:.3em;font-weight:900;color:var(--navy);min-height:1.4em;text-align:center}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.keypad button{padding:14px 0;font-size:1.25rem;width:100%}
+.keypad #mkPrize{font-size:1rem}
 
 /* ===== 호스트 화면 ===== */
-.hscreen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;gap:2.2vh;
-  padding:3vh 4vw calc(90px + env(safe-area-inset-bottom));text-align:center;overflow:auto}
+.hscreen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;gap:2vh;
+  padding:3vh 4vw calc(96px + env(safe-area-inset-bottom));text-align:center;overflow:auto}
 .hscreen>:first-child{margin-top:auto}.hscreen>:last-child{margin-bottom:auto}
 .hide{display:none!important}
-.hscreen h1{font-size:clamp(1.8rem,4.6vw,3.6rem);font-weight:900;letter-spacing:-.03em}
-.hsub{color:var(--dim);font-size:clamp(1rem,2vw,1.6rem);margin:0;line-height:1.5}
-.hsub b{color:var(--ink)}
-.lbl{color:var(--dim);font-size:clamp(.9rem,1.6vw,1.3rem);font-weight:800;letter-spacing:.14em}
-.codebig{cursor:default;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,monospace;font-size:clamp(3rem,9vw,7rem);font-weight:900;letter-spacing:.14em;line-height:1;color:var(--accent)}
-.qrbox{background:#fff;padding:18px;border-radius:22px;display:flex}
+.hscreen h1{font-size:clamp(2rem,4.8vw,3.8rem);text-shadow:3px 3px 0 var(--yellow)}
+.hsub{color:var(--dim);font-size:clamp(1rem,2vw,1.5rem);margin:0;line-height:1.5;font-weight:700}
+.hsub b{color:var(--navy);font-weight:900}
+.lbl{color:var(--dim);font-size:clamp(.9rem,1.6vw,1.3rem);font-weight:900;letter-spacing:.2em}
+.codebig{cursor:default;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,monospace;
+  font-size:clamp(3rem,9vw,7rem);font-weight:900;letter-spacing:.14em;line-height:1;color:var(--navy);text-shadow:4px 4px 0 var(--yellow)}
+.qrbox{background:#fff;padding:16px;border-radius:22px;display:flex;border:3px solid var(--navy);box-shadow:0 6px 0 var(--navy)}
 .qrbox canvas{display:block;width:min(42vh,440px);height:min(42vh,440px)}
-.url{font-family:ui-monospace,Menlo,monospace;font-size:clamp(.8rem,1.3vw,1.05rem);color:var(--dim);word-break:break-all;max-width:40ch;margin:0}
 .hbadges{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .hbadges .badge{font-size:clamp(.9rem,1.6vw,1.25rem);padding:.4em 1.1em}
-button.big{width:auto;font-size:clamp(1.2rem,2.4vw,1.8rem);padding:16px 48px}
-button.ghost.sm{width:auto;font-size:.95rem;padding:12px 20px}
-button.danger{width:auto;background:transparent;border:1px solid #4a2230;color:#b06a7a;font-size:.95rem;padding:12px 20px}
+button.big{width:auto;font-size:clamp(1.2rem,2.4vw,1.8rem);padding:14px 46px}
+button.ghost.sm{width:auto;font-size:.95rem;padding:11px 18px}
+button.danger{width:auto;background:#FFE4E0;color:#9E2F24;font-size:.95rem;padding:11px 18px}
 #bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;
-  padding:14px 4vw calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(7,9,18,.9);z-index:10}
+  padding:14px 4vw calc(14px + env(safe-area-inset-bottom));border-top:3px solid var(--navy);background:var(--paper);z-index:10}
 #bar:empty{display:none}
 
-/* 대기실 — 떠다니는 참가자 이름 */
+/* 대기실 — 떠다니는 참가자 이름 (동전 칩) */
 #floaters{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .fl{position:absolute;animation:bob var(--d) ease-in-out infinite alternate}
-.fl span{display:block;padding:7px 14px;border-radius:999px;
-  background:hsl(var(--h) 70% 55% / .22);border:1.5px solid hsl(var(--h) 80% 65% / .75);color:hsl(var(--h) 95% 85%);
-  box-shadow:0 0 14px hsl(var(--h) 80% 60% / .25);
-  font-weight:800;font-size:clamp(.85rem,1.4vw,1.2rem);white-space:nowrap;max-width:14ch;overflow:hidden;text-overflow:ellipsis;
+.fl span{display:inline-flex;align-items:center;gap:6px;padding:5px 11px 5px 6px;border-radius:999px;background:var(--bg,#fff);
+  border:2.5px solid var(--navy);color:var(--navy);box-shadow:0 3px 0 var(--navy);
+  font-weight:800;font-size:clamp(.8rem,1.3vw,1.1rem);white-space:nowrap;max-width:16ch;overflow:hidden;text-overflow:ellipsis;
   animation:flin .5s cubic-bezier(.2,1.3,.5,1) both}
 @keyframes flin{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:scale(1)}}
-/* 두 지점을 거쳐 크게 흔들리며 떠다닌다 */
 @keyframes bob{
   0%{transform:translate(0,0) rotate(calc(var(--r) * -1))}
   50%{transform:translate(var(--dx2),var(--dy2)) rotate(var(--r))}
   100%{transform:translate(var(--dx),var(--dy)) rotate(calc(var(--r) * -1))}}
 
-/* 레이스 */
-#race{flex-direction:row;align-items:stretch;gap:0;padding:0 0 calc(84px + env(safe-area-inset-bottom));overflow:hidden}
+/* 레이스 — 여기만 남색 보드 */
+#race{flex-direction:row;align-items:stretch;gap:0;padding:0 0 calc(84px + env(safe-area-inset-bottom));overflow:hidden;background:var(--board)}
 canvas#cv{flex:1 1 0;min-width:0;display:block;height:100%;margin:0!important}
 #race>*{margin:0!important}
-#side{flex:none;width:clamp(220px,20vw,340px);border-left:1px solid var(--line);background:#0b0e1b;
-  display:flex;flex-direction:column;padding:20px 18px;gap:14px;overflow:hidden;text-align:left}
-#side h2{margin:0;font-size:1rem;letter-spacing:.12em;color:var(--dim);font-weight:800}
-.podium{display:flex;flex-direction:column;gap:10px}
-.slot{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;
-  background:var(--card);border:1px solid var(--line);min-height:62px}
-.slot .rk{font-size:1.5rem;font-weight:900;width:1.6em;text-align:center;flex:none}
-.slot .nm{font-size:1.15rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slot.empty .nm{color:#39405f;font-weight:600}
-.slot.g{border-color:#5a4a12;background:#1d1805}.slot.g .rk{color:var(--gold)}
-.slot.s{border-color:#3f4654;background:#161a26}.slot.s .rk{color:var(--silver)}
-.slot.b{border-color:#5a3428;background:#1d1109}.slot.b .rk{color:var(--bronze)}
+#side{flex:none;width:clamp(220px,20vw,340px);border-left:3px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);
+  display:flex;flex-direction:column;padding:20px 16px;gap:12px;overflow:hidden;text-align:left;color:#fff}
+#side h2{margin:0;font-size:.85rem;letter-spacing:.16em;color:#AEB4E8;font-weight:900}
+.podium{display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;
+  background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.18);min-height:56px}
+.slot .rk{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:.95rem;font-weight:900;color:var(--navy);flex:none;
+  background:radial-gradient(circle at 35% 30%,#FFF3B0,var(--gold) 55%,var(--gold2));border:2px solid var(--navy)}
+.slot.s .rk{background:radial-gradient(circle at 35% 30%,#fff,var(--silver) 55%,var(--silver2))}
+.slot.b .rk{background:radial-gradient(circle at 35% 30%,#FFD9B8,var(--bronze) 55%,var(--bronze2))}
+.slot .nm{font-size:1.1rem;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot.empty .nm{color:#5B62A0;font-weight:700}
+.slot.g{border-color:var(--gold)}
 #live{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:5px;min-height:0}
-.lrow{display:flex;gap:9px;align-items:center;font-size:.92rem;color:var(--dim)}
-.lrow .n{width:1.8em;text-align:right;font-variant-numeric:tabular-nums;color:#4b5375;font-weight:700}
-.lrow .dot{width:11px;height:11px;border-radius:50%;flex:none}
+.lrow{display:flex;gap:8px;align-items:center;font-size:.92rem;color:#C9CDF0;font-weight:700}
+.lrow .n{width:1.8em;text-align:right;font-variant-numeric:tabular-nums;color:#7C82B8;font-weight:800}
+.lrow .dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid var(--navy)}
 .lrow .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #big{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
-#big span{font-size:clamp(3rem,9vw,7.5rem);font-weight:900;letter-spacing:-.03em;opacity:0;visibility:hidden;
-  padding:.15em .5em;border-radius:.25em;background:rgba(7,9,18,.92);border:3px solid currentColor;white-space:nowrap;
-  transition:opacity .25s,transform .25s;transform:translateY(16px)}
+#big span{font-size:clamp(2.6rem,8vw,6.5rem);font-weight:900;letter-spacing:-.03em;opacity:0;visibility:hidden;
+  padding:.18em .55em;border-radius:.3em;background:var(--navy);border:4px solid currentColor;white-space:nowrap;
+  box-shadow:0 8px 0 rgba(0,0,0,.35);transition:opacity .2s,transform .2s;transform:translateY(16px)}
 #big span.on{opacity:1;visibility:visible;transform:none}
 
 /* 호스트 결과 */
-.fpod{display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
-.fcard{background:#121728;border:2px solid var(--line);border-radius:22px;padding:26px 32px;
-  min-width:clamp(200px,22vw,320px);text-align:center}
-.fcard .fm{font-size:clamp(2.4rem,5vw,4.2rem);line-height:1}
-.fcard .fr{font-size:1.1rem;font-weight:900;letter-spacing:.1em;margin:8px 0}
-.fcard .fn{font-size:clamp(1.6rem,4vw,3.2rem);font-weight:900;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:14ch}
-.fcard.g{border-color:var(--gold);transform:scale(1.14);margin:0 10px 18px}.fcard.g .fr{color:var(--gold)}
-.fcard.s{border-color:#69707f}.fcard.s .fr{color:var(--silver)}
-.fcard.b{border-color:#7a4a36}.fcard.b .fr{color:var(--bronze)}
-.hboard{width:min(1200px,94vw);max-height:30vh;overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--card);
-  padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px 10px;text-align:left}
+.fpod{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
+.fcard{background:var(--paper);border:3px solid var(--navy);border-radius:22px;padding:22px 30px;
+  min-width:clamp(180px,20vw,300px);text-align:center;box-shadow:0 7px 0 var(--navy)}
+.fcard .fm{display:inline-block;position:relative}
+.fcard .fr{font-size:.95rem;font-weight:900;letter-spacing:.1em;margin:8px 0 2px;color:var(--dim)}
+.fcard .fn{font-size:clamp(1.5rem,3.6vw,2.8rem);font-weight:900;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:14ch;color:var(--navy)}
+.fcard.g{background:#FFF6C4;transform:scale(1.12);margin:0 10px 16px}
+.hboard{width:min(1200px,94vw);max-height:30vh;overflow:auto;border:3px solid var(--navy);border-radius:18px;background:var(--paper);
+  padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px 10px;text-align:left;box-shadow:0 6px 0 var(--navy)}
 .hboard .brow{padding:6px 10px;border:0}
 
 /* 쿠폰·멘트 설정 */
 .prizes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-.pz{background:#0d1120;border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.pz{background:#fff;border:3px solid var(--navy);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 0 var(--navy)}
 .pz h3{margin:0;font-size:1.05rem;font-weight:900;display:flex;justify-content:space-between;align-items:center}
-.pz .st{font-size:.8rem;font-weight:800;color:var(--dim)}
+.pz .st{font-size:.8rem;font-weight:900;color:var(--dim)}
 .pz .st.ok{color:var(--ok)}
-.pz .thumb{width:100%;height:130px;border-radius:10px;background:#070912;border:1px dashed var(--line);
-  display:flex;align-items:center;justify-content:center;color:#4b5375;font-size:.85rem;overflow:hidden}
+.pz .thumb{width:100%;height:130px;border-radius:12px;background:var(--cream);border:3px dashed #C9C3A6;
+  display:flex;align-items:center;justify-content:center;color:#A0A3B8;font-size:.85rem;font-weight:700;overflow:hidden}
 .pz .thumb img{width:100%;height:100%;object-fit:contain}
 .pz input{font-size:.95rem;padding:10px 12px}
 .pz button{padding:10px 14px;font-size:.92rem}
 .field{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:.85rem;font-weight:800;color:var(--dim)}
-.field input{background:#0d1120}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#34d399;color:#04281c;z-index:40;
-  padding:12px 26px;border-radius:999px;font-weight:800;opacity:0;transition:.2s;pointer-events:none}
+.field label{font-size:.85rem;font-weight:900;color:var(--dim)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--mint);color:var(--navy);z-index:40;
+  padding:12px 26px;border-radius:999px;font-weight:900;border:3px solid var(--navy);box-shadow:0 4px 0 var(--navy);opacity:0;transition:.2s;pointer-events:none}
 .toast.on{opacity:1}
 
 /* ===== 참가자 결과 ===== */
-.rank{font-size:clamp(4rem,24vw,8rem);font-weight:900;line-height:1;letter-spacing:-.04em;margin:0}
-.rank small{font-size:.3em;font-weight:800;color:var(--dim);margin-left:.1em}
-.medal{font-size:clamp(3.5rem,22vw,6rem);line-height:1;margin:0}
-.name{font-size:1.5rem;font-weight:800;margin:0}
-.pct{color:var(--ink);font-size:1.15rem;font-weight:800;margin:0}
-/* 1·2·3등 배경 — 금/은/동 */
-body.m1{background:radial-gradient(120% 70% at 50% 0%,#3a2c05 0%,#1a1505 45%,var(--bg) 100%)}
-body.m2{background:radial-gradient(120% 70% at 50% 0%,#2e3340 0%,#181b26 45%,var(--bg) 100%)}
-body.m3{background:radial-gradient(120% 70% at 50% 0%,#3b2010 0%,#1c1108 45%,var(--bg) 100%)}
-.m1 .rank{color:var(--gold)}.m2 .rank{color:#e2e8f0}.m3 .rank{color:#e8a27a}
-/* 컨페티 */
+.rank{font-size:clamp(4rem,24vw,8rem);font-weight:900;line-height:1;letter-spacing:-.05em;margin:0;color:var(--navy);text-shadow:4px 4px 0 var(--yellow)}
+.rank small{font-size:.3em;font-weight:900;color:var(--dim);margin-left:.1em;text-shadow:none}
+.name{font-size:1.5rem;font-weight:900;margin:0;color:var(--navy)}
+.pct{display:inline-block;background:#fff;border:3px solid var(--navy);border-radius:16px;padding:8px 14px;font-weight:900;margin:0;
+  box-shadow:0 4px 0 var(--navy);color:var(--navy)}
+body.m1{background:#FFF1B8}body.m2{background:#EEF1F6}body.m3{background:#FBE6D6}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
-.confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;opacity:0;
-  animation:cf 1.5s ease-out forwards}
+.confetti i{position:absolute;top:-16px;width:14px;height:14px;border-radius:50%;border:2px solid var(--navy);opacity:0;animation:cf 1.5s ease-out forwards}
 @keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(105vh) rotate(720deg)}}
-/* 버튼 스피너 */
 button.busy{color:transparent;position:relative}
 button.busy::after{content:'';position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:50%;
-  border:3px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .7s linear infinite}
+  border:3px solid rgba(30,33,64,.25);border-top-color:var(--navy);animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* 2단계 — 상품 */
 .reveal{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;animation:reveal .3s ease-out both}
 @keyframes reveal{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
-.reveal .label{font-size:1.35rem;font-weight:800;margin:0}
-.barcode{width:100%;max-width:480px;background:#fff;border-radius:14px;padding:28px 6px}
+.reveal .label{font-size:1.35rem;font-weight:900;margin:0;color:var(--navy)}
+.barcode{width:100%;max-width:480px;background:#fff;border-radius:16px;padding:28px 6px;border:3px solid var(--navy);box-shadow:0 6px 0 var(--navy)}
 .barcode img{display:block;width:100%;height:auto}
-.note{color:var(--dim);font-size:.95rem;line-height:1.7;margin:0}
-.note b{color:var(--ink)}
-.ctext{font-size:1.1rem;line-height:1.5;margin:0;font-weight:600}
+.note{color:var(--dim);font-size:.95rem;line-height:1.7;margin:0;font-weight:700}
+.note b{color:var(--navy)}
+.ctext{font-size:1.05rem;line-height:1.5;margin:0 6px;font-weight:800;color:var(--ink);word-break:keep-all}
 .goodeal-btn{
-  display:block;width:100%;max-width:480px;margin:20px auto 0;
-  padding:18px 20px;border:0;border-radius:14px;
-  background:#FFEB00;color:#000;
+  display:block;width:100%;max-width:480px;margin:12px auto 0;
+  padding:18px 20px;border:3px solid var(--navy);border-radius:18px;
+  background:#FFEB00;color:#000;box-shadow:0 5px 0 var(--navy);
   font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
-  font-weight:800;font-size:18px;letter-spacing:-0.02em;
+  font-weight:900;font-size:18px;letter-spacing:-0.02em;
   text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box;
 }
-.goodeal-btn:active{background:#F2DE00;transform:scale(0.98)}
+.goodeal-btn:active{background:#F2DE00;transform:translateY(4px);box-shadow:0 1px 0 var(--navy)}
 button.goodeal-btn:disabled{opacity:.6}
-/* 3단계 — 전체 순위 (접힘) */
-.toggle{background:transparent;border:0;color:var(--dim);font-size:.95rem;font-weight:700;padding:10px;width:auto}
-.board{width:100%;max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.brow{display:flex;gap:12px;padding:11px 15px;font-size:.95rem;border-bottom:1px solid #1e2338;align-items:center}
+.toggle{background:transparent;border:0;box-shadow:none;color:var(--dim);font-size:.95rem;font-weight:800;padding:10px;width:auto}
+.toggle:active{transform:none}
+.board{width:100%;max-height:44vh;overflow:auto;border:3px solid var(--navy);border-radius:16px;background:var(--paper);box-shadow:0 5px 0 var(--navy)}
+.brow{display:flex;gap:12px;padding:11px 15px;font-size:.95rem;border-bottom:2px solid #EFEAD6;align-items:center;font-weight:700}
 .brow:last-child{border-bottom:0}
-.brow .r{width:2.6em;text-align:right;font-variant-numeric:tabular-nums;color:var(--dim);font-weight:800}
+.brow .r{width:2.6em;text-align:right;font-variant-numeric:tabular-nums;color:var(--dim);font-weight:900}
 .brow .nm{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.brow.me{background:#1e2440;color:var(--ink)}
-.brow.me .r{color:var(--accent)}
-.brow.top .r{color:var(--gold)}
-.foot{text-align:center;color:#4d5477;font-size:.72rem;padding-top:14px}
+.brow.me{background:var(--yellow);color:var(--navy)}
+.brow.me .r{color:var(--navy)}
+.brow.top .r{color:var(--gold2)}
+.foot{text-align:center;color:#A9A48C;font-size:.72rem;padding-top:14px;font-weight:700}
 @keyframes pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
 .pop{animation:pop .4s ease-out both}
 </style>
@@ -560,7 +567,7 @@ button.goodeal-btn:disabled{opacity:.6}
 <body>
 <!-- 참가자 / 입구 -->
 <div class="wrap" id="app"></div>
-<div class="foot">구슬 레이스 추첨</div>
+<div class="foot">굴러라 페이</div>
 
 <!-- 호스트 -->
 <div id="floaters" class="hide"></div>
@@ -810,33 +817,48 @@ function drawObstacles(top, bot) {
   for (const o of obs) {
     if (o.t === 'peg') {
       if (o.y < top - 30 || o.y > bot + 30) continue;
-      ctx.fillStyle = '#1b2138';
+      ctx.fillStyle = '#3A4386';
       ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = '#5B65B8'; ctx.lineWidth = 2; ctx.stroke();
     } else if (o.t === 'bump') {
       if (o.y < top - 60 || o.y > bot + 60) continue;
       ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, 6.2832);
-      ctx.fillStyle = '#2a2150'; ctx.fill();
-      ctx.strokeStyle = '#7c6cff'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = '#2A2F63'; ctx.fill();
+      ctx.strokeStyle = '#FF7A6B'; ctx.lineWidth = 5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(o.x, o.y, o.r * .5, 0, 6.2832); ctx.strokeStyle = '#FFEB00'; ctx.lineWidth = 4; ctx.stroke();
     } else if (o.t === 'seg') {
       if (Math.max(o.ay, o.by) < top - 60 || Math.min(o.ay, o.by) > bot + 60) continue;
-      ctx.strokeStyle = '#2b3357'; ctx.lineWidth = o.r * 2; ctx.lineCap = 'round';
+      ctx.strokeStyle = '#6BB8FF'; ctx.lineWidth = o.r * 2; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(o.ax, o.ay); ctx.lineTo(o.bx, o.by); ctx.stroke();
     } else if (o.t === 'spin') {
       if (o.y < top - 120 || o.y > bot + 120) continue;
       const ca = Math.cos(o.a), sa = Math.sin(o.a), hl = o.len / 2;
-      ctx.strokeStyle = '#4a5cc4'; ctx.lineWidth = o.r * 2; ctx.lineCap = 'round';
+      ctx.strokeStyle = '#FFB347'; ctx.lineWidth = o.r * 2; ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(o.x - ca * hl, o.y - sa * hl);
       ctx.lineTo(o.x + ca * hl, o.y + sa * hl);
       ctx.stroke();
-      ctx.fillStyle = '#8b93b8';
-      ctx.beginPath(); ctx.arc(o.x, o.y, 5, 0, 6.2832); ctx.fill();
+      ctx.fillStyle = '#1E2140';
+      ctx.beginPath(); ctx.arc(o.x, o.y, 6, 0, 6.2832); ctx.fill();
     }
   }
 }
 
 /* ---------------- 구슬 ---------------- */
-function hueFor(i, n) { return (i * 360 / Math.max(1, n) + (i % 3) * 17) % 360; }
+// 동전 스프라이트 — 금·은·구리 3종을 한 번만 그려두고 drawImage 로 찍는다 (300개도 가볍게)
+const TIER_COLORS = [['#FFF3B0','#F6C445','#C98A16'], ['#FFFFFF','#D5D9E3','#8D93A5'], ['#FFD9B8','#D98A52','#8E4E22']];
+const TIER_DOT = ['#F6C445', '#D5D9E3', '#D98A52'];
+const coinSprites = TIER_COLORS.map(cols => {
+  const S = 96, c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), cx = S / 2, r = S / 2 - 4;
+  const grad = g.createRadialGradient(cx * .7, cx * .6, 4, cx, cx, r);
+  grad.addColorStop(0, cols[0]); grad.addColorStop(.55, cols[1]); grad.addColorStop(1, cols[2]);
+  g.beginPath(); g.arc(cx, cx, r, 0, 6.2832); g.fillStyle = grad; g.fill();
+  g.lineWidth = 6; g.strokeStyle = '#1E2140'; g.stroke();
+  g.fillStyle = '#1E2140'; g.font = '900 46px Pretendard,system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('₩', cx, cx + 2);
+  return c;
+});
 
 function setupMarbles(players) {
   marbles = []; finished = [];
@@ -850,7 +872,7 @@ function setupMarbles(players) {
       x: 70 + sp * (c + .5) + (Math.random() - .5) * sp * .35,
       y: 40 - r * (R * 3.4) - Math.random() * 10,
       vx: (Math.random() - .5) * 30, vy: 0,
-      color: `hsl(${hueFor(i, n)} 78% 58%)`,
+      tier: i % 3, color: TIER_DOT[i % 3],
       done: false, rank: 0
     });
   });
@@ -931,7 +953,7 @@ function resize() {
 function draw() {
   const { w, h, dpr } = VIEW;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = '#070912';
+  ctx.fillStyle = '#1B2148';
   ctx.fillRect(0, 0, w, h);
 
   // 세로 1100 월드픽셀이 보이도록 맞춥니다 (선두 그룹이 한 화면에 들어옴)
@@ -950,20 +972,29 @@ function draw() {
   const top = camY, bot = camY + h / scale;
 
   drawObstacles(top, bot);
-  // 결승선
-  if (GOAL_Y > top - 40 && GOAL_Y < bot + 40) {
-    ctx.fillStyle = '#6c7bff';
-    ctx.fillRect(0, GOAL_Y, W, 6);
-    ctx.font = '700 34px system-ui,sans-serif';
-    ctx.fillStyle = '#8b93b8'; ctx.textAlign = 'center';
-    ctx.fillText('FINISH', W / 2, GOAL_Y + 52);
+  // 결승선 — 체크 깃발 + 커피컵 3개 (1·2·3등이 컵으로 쏙)
+  if (GOAL_Y > top - 200 && GOAL_Y < bot + 60) {
+    for (let x = 0; x < W; x += 40) {
+      ctx.fillStyle = '#fff';    ctx.fillRect(x, GOAL_Y, 20, 8);      ctx.fillRect(x + 20, GOAL_Y + 8, 20, 8);
+      ctx.fillStyle = '#1E2140'; ctx.fillRect(x + 20, GOAL_Y, 20, 8); ctx.fillRect(x, GOAL_Y + 8, 20, 8);
+    }
+    const cups = [[W / 2 - 220, '🥈'], [W / 2, '🥇'], [W / 2 + 220, '🥉']];
+    for (const [cx, em] of cups) {
+      ctx.beginPath(); ctx.moveTo(cx - 60, GOAL_Y + 30); ctx.lineTo(cx + 60, GOAL_Y + 30); ctx.lineTo(cx + 45, GOAL_Y + 130); ctx.lineTo(cx - 45, GOAL_Y + 130); ctx.closePath();
+      ctx.fillStyle = '#FFF7DC'; ctx.fill(); ctx.strokeStyle = '#1E2140'; ctx.lineWidth = 5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx + 72, GOAL_Y + 70, 22, -1.4, 1.4); ctx.stroke();   // 손잡이
+      ctx.font = '36px system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#1E2140';
+      ctx.fillText(em, cx, GOAL_Y + 96);
+    }
+    ctx.font = '900 30px Pretendard,system-ui,sans-serif';
+    ctx.fillStyle = '#AEB4E8'; ctx.textAlign = 'center';
+    ctx.fillText('F I N I S H', W / 2, GOAL_Y + 175);
   }
-  // 구슬
+  // 동전
   for (const m of marbles) {
     if (m.done) continue;
     if (m.y < top - 40 || m.y > bot + 40) continue;
-    ctx.beginPath(); ctx.arc(m.x, m.y, R, 0, 6.2832);
-    ctx.fillStyle = m.color; ctx.fill();
+    ctx.drawImage(coinSprites[m.tier], m.x - R - 2, m.y - R - 2, R * 2 + 4, R * 2 + 4);
   }
   // 선두 5명만 이름표 — 150개를 다 쓰면 아무것도 안 읽힙니다
   const lead5 = marbles.filter(m => !m.done).sort((a, b) => b.y - a.y).slice(0, 5);
@@ -982,22 +1013,22 @@ function draw() {
       ly += 36;
     }
     placed.push({ x: lx, y: ly, w: tw });
-    ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(lx - 4, ly - 8); ctx.stroke();
-    ctx.fillStyle = 'rgba(7,9,18,.82)';
-    ctx.fillRect(lx - 7, ly - 24, tw + 14, 32);
-    ctx.fillStyle = i === 0 ? '#fbbf24' : '#e6e9ff';
+    // 스티커 이름표 — 선두는 노란색
+    ctx.fillStyle = i === 0 ? '#FFEB00' : '#FFFFFF';
+    ctx.strokeStyle = '#1E2140'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(lx - 8, ly - 24, tw + 16, 32, 9); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1E2140';
     ctx.fillText(label, lx, ly);
-    ctx.beginPath(); ctx.arc(m.x, m.y, R + 4, 0, 6.2832);
-    ctx.strokeStyle = i === 0 ? '#fbbf24' : 'rgba(255,255,255,.55)';
-    ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(m.x, m.y, R + 5, 0, 6.2832);
+    ctx.strokeStyle = i === 0 ? '#FFEB00' : 'rgba(255,255,255,.7)';
+    ctx.lineWidth = 3; ctx.stroke();
   });
   ctx.restore();
 
   // 남은 거리 게이지
   const prog = Math.min(1, Math.max(0, lead / GOAL_Y));
-  ctx.fillStyle = '#161c31'; ctx.fillRect(0, 0, w, 6);
-  ctx.fillStyle = '#6c7bff';  ctx.fillRect(0, 0, w * prog, 6);
+  ctx.fillStyle = '#2E3670'; ctx.fillRect(0, 0, w, 8);
+  ctx.fillStyle = '#FFEB00'; ctx.fillRect(0, 0, w * prog, 8);
 }
 
 
@@ -1011,7 +1042,7 @@ function renderPodium() {
   let h = '';
   for (let i = 0; i < CONFIG.WINNERS; i++) {
     const m = finished[i];
-    h += `<div class="slot ${m ? RK[i] || '' : 'empty'}">
+    h += `<div class="slot ${RK[i] || ''} ${m ? '' : 'empty'}">
             <div class="rk">${i + 1}</div><div class="nm">${m ? esc(m.name) : '—'}</div></div>`;
   }
   podiumEl.innerHTML = h;
@@ -1087,8 +1118,8 @@ let urlCode = (new URLSearchParams(location.search).get('r') || '').trim().toUpp
 function screenEntry(err = '') {
   const savedNick = localStorage.getItem('marble_nick') || '';
   render(`
-    <p class="emoji" id="dice">🎲</p>
-    <h1>구슬 레이스 추첨</h1>
+    <div class="logo" id="dice"><span class="coin big">₩</span><i class="lines"><b></b><b></b><b></b></i></div>
+    <h1>굴러라 페이</h1>
     <div class="card">
       <input id="nick" placeholder="이름 (1~14자)" maxlength="14" value="${esc(savedNick)}"
              autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -1125,7 +1156,7 @@ function screenEntry(err = '') {
   nick.onkeydown = e => { if (e.key === 'Enter') $('join').click(); };
   if ($('code')) $('code').onkeydown = e => { if (e.key === 'Enter') $('join').click(); };
   if ($('create')) $('create').onclick = () => { keepAwake(); const v = getNick(); if (v) createRoom(v, null); };
-  // 숨은 입구 — 주사위를 7번 누르면 상품 모드(PIN). 탭 사이가 3초를 넘으면 처음부터
+  // 숨은 입구 — 로고 동전을 7번 누르면 호스트 모드. 탭 사이가 3초를 넘으면 처음부터
   let taps = 0, tapTimer = null;
   $('dice').onclick = () => {
     if (urlCode) return;
@@ -1227,7 +1258,7 @@ async function joinRoom(code, nick) {
 function screenLobby(s) {
   render(`
     <span class="badge">${s.join_count}명 입장</span>
-    <p class="emoji">🎲</p>
+    <div class="logo"><span class="coin big">₩</span></div>
     <h1>${esc(s.nick)} 님, 입장 완료!</h1>
     <p class="sub" style="color:var(--accent);font-size:.85rem">화면에 표시될 이름입니다</p>
     <p class="sub">곧 시작합니다.<br>앞 화면을 봐주세요.</p>
@@ -1238,7 +1269,7 @@ function screenRacing(s) {
   render(`
     <p class="emoji pop">🏁</p>
     <h1>레이스 진행 중!</h1>
-    <p class="sub"><b>${esc(s.nick)}</b> 님의 구슬이 달리고 있습니다.<br>앞 화면을 봐주세요.</p>
+    <p class="sub"><b>${esc(s.nick)}</b> 님의 동전이 굴러가고 있습니다.<br>앞 화면을 봐주세요.</p>
   `);
 }
 
@@ -1299,7 +1330,7 @@ function setMedalBg(rank) {
 function confetti() {
   const box = document.createElement('div');
   box.className = 'confetti';
-  const colors = ['#fbbf24', '#6c7bff', '#34d399', '#f87171', '#f2f4ff', '#fb923c'];
+  const colors = ['#F6C445', '#D5D9E3', '#D98A52', '#FFEB00', '#6FD3A7', '#FF7A6B'];
   for (let i = 0; i < 36; i++) {
     const c = document.createElement('i');
     c.style.left = Math.random() * 100 + 'vw';
@@ -1338,7 +1369,9 @@ function screenRank(s) {
   const pct = pctLine(r, s.total);
   const isPrize = reward && reward.kind === 'prize';
   render(`
-    ${top3 ? `<p class="medal pop">${MEDAL[r - 1]}</p>` : ''}
+    ${top3
+      ? `<div class="medalcoin pop">${r === 1 ? '<span class="crown">👑</span>' : ''}<span class="coin mid t${r - 1}">${r}</span></div>`
+      : `<div class="logo"><span class="coin mid">₩</span></div>`}
     <p class="rank pop">${r || '–'}<small>등</small></p>
     ${top3
       ? `<p class="name">${esc(s.nick)}</p>`
@@ -1357,7 +1390,7 @@ function screenRank(s) {
 function screenPrize(p) {
   render(`
     <div class="reveal">
-      <p class="rank" style="font-size:2.2rem">${MEDAL[p.rank - 1] || ''} ${p.rank}<small>등</small></p>
+      <div class="medalcoin">${p.rank === 1 ? '<span class="crown">👑</span>' : ''}<span class="coin mid t${p.rank - 1}">${p.rank}</span></div>
       <p class="label">${esc(p.label || '상품')}</p>
       <div class="barcode"><img src="${p.image}" alt="쿠폰 바코드"></div>
       <p class="note">☀️ <b>화면 밝기를 최대로</b> 올려주세요<br>📸 <b>이 화면을 캡처</b>해두세요</p>
@@ -1529,8 +1562,10 @@ function renderFloaters(players) {
     d.style.setProperty('--dy2', (Math.random() * 120 - 60).toFixed(0) + 'px');
     d.style.setProperty('--r',   (Math.random() * 10 + 3).toFixed(0) + 'deg');
     d.style.setProperty('--d',   (2.2 + Math.random() * 2).toFixed(1) + 's');
-    d.style.setProperty('--h',   Math.floor(Math.random() * 360));   // 사람마다 다른 색
-    d.innerHTML = `<span>${esc(p.nick)}</span>`;
+    const tier = Math.floor(Math.random() * 3);                        // 금·은·구리
+    const bgs = ['#fff', '#FFF1B8', '#E3F6EC', '#FFE4E0', '#E4F0FF'];
+    d.style.setProperty('--bg', bgs[Math.floor(Math.random() * bgs.length)]);
+    d.innerHTML = `<span><i class="coin xs t${tier}">₩</i>${esc(p.nick)}</span>`;
     layer.appendChild(d);
     floaterEls[p.id] = d;
   });
@@ -1714,6 +1749,7 @@ async function showHostResult() {
   const top = rows.slice(0, 3);
   const L = ['1등','2등','3등'], C = ['g','s','b'];
   const order = [1, 0, 2].filter(i => top[i]);   // 시상대: 2등 · 1등 · 3등
+  const coinOf = i => `<div class="fm">${i === 0 ? '<span class="crown" style="position:absolute;top:-22px;left:50%;transform:translateX(-50%) rotate(-8deg);font-size:30px">👑</span>' : ''}<span class="coin mid t${i}">${i + 1}</span></div>`;
   $('hresult').innerHTML = `
     <div class="hbadges">
       <span class="badge">방장 : ${esc(room.title || hostName)}</span>
@@ -1721,7 +1757,7 @@ async function showHostResult() {
     </div>
     <h1>축하합니다 🎉</h1>
     <div class="fpod">${order.map(i => `
-      <div class="fcard ${C[i]}"><div class="fm">${MEDAL[i]}</div><div class="fr">${L[i]}</div>
+      <div class="fcard ${C[i]}">${coinOf(i)}<div class="fr">${L[i]}</div>
         <div class="fn">${esc(top[i].nick)}</div></div>`).join('')}</div>
     <p class="hsub">${room.is_prize
       ? '1,2,3등은 <b>스타벅스 커피 상품권</b>을 드려요.<br>모바일 폰에서 <b>쿠폰 확인하기</b> 클릭'
