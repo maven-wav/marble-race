@@ -580,7 +580,8 @@ const CONFIG = {
   JOIN_BASE: location.origin + location.pathname.replace(/[^/]*$/, ''),
   POLL_MS: 2500,          // 참가자 폴링
   LOBBY_POLL_MS: 2000,    // 호스트 대기실 인원 갱신
-  WINNERS: 3
+  WINNERS: 3,
+  MAX_RACE_SEC: 45        // 이 시간이 지나면 현재 순서로 마감 (구슬이 걸렸을 때 대비)
 };
 /* =============================================== */
 
@@ -902,7 +903,7 @@ function step(dt) {
         m.done = true; m.rank = finished.length + 1;
         finished.push(m);
         announce(m);
-        if (finished.length >= CONFIG.WINNERS) { running = false; return; }
+        if (finished.length >= winnersNeeded()) { running = false; return; }
       }
     }
   }
@@ -995,6 +996,8 @@ function draw() {
 const podiumEl = document.getElementById('podium');
 const liveEl   = document.getElementById('live');
 const RK = ['g','s','b'];
+// 참가자가 3명 미만이면 있는 만큼만 골인하면 끝 (2명이면 2등까지)
+function winnersNeeded() { return Math.min(CONFIG.WINNERS, marbles.length); }
 function renderPodium() {
   let h = '';
   for (let i = 0; i < CONFIG.WINNERS; i++) {
@@ -1611,7 +1614,7 @@ async function startRace() {
   }
   room.status = 'racing';
   showHost('race');
-  ranksSent = false; submitting = null; running = false;
+  ranksSent = false; submitting = null; running = false; raceEnded = false; raceT = 0;
   buildCourse(); setupMarbles(players);
   camY = 0; lastT = 0; renderPodium(); resize();
   bar.innerHTML = `<span class="badge">${players.length}명 · 입장 마감</span>
@@ -1625,7 +1628,13 @@ function announce(m) {
   bigEl.textContent = `${m.rank}등  ${m.name}`;
   bigEl.style.color = ['#fbbf24','#cbd5e1','#d97757'][m.rank - 1] || '#fff';
   bigEl.classList.remove('on'); void bigEl.offsetWidth; bigEl.classList.add('on');
-  if (finished.length >= CONFIG.WINNERS) { submitting = submitRanks(); setTimeout(showHostResult, 1700); }
+  if (finished.length >= winnersNeeded()) finishRace();
+}
+let raceEnded = false;
+function finishRace() {
+  if (raceEnded) return;
+  raceEnded = true; running = false;
+  submitting = submitRanks(); setTimeout(showHostResult, 1700);
 }
 // 1·2·3등이 골인한 그 순간, 나머지는 얼마나 멀리 갔는지로 줄을 세웁니다
 function finalRanking() {
@@ -1719,7 +1728,10 @@ function frame(t) {
   if (!lastT) lastT = t;
   let dt = (t - lastT) / 1000; lastT = t;
   if (dt > 0.05) dt = 0.05;
-  if (mode === 'race') { if (running) step(dt); draw(); renderLive(); }
+  if (mode === 'race') {
+    if (running) { step(dt); raceT += dt; if (raceT > CONFIG.MAX_RACE_SEC) finishRace(); }
+    draw(); renderLive();
+  }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
