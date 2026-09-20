@@ -1455,7 +1455,7 @@ function showHostLobby() {
     <p class="hsub">QR 을 스캔하거나 방 코드를 입력해서 참가 · <b id="cnt">${room.join_count}</b> 명</p>
     <div class="hbadges">
       <span class="badge">방장 : ${esc(room.title || hostName)}</span>
-      ${room.is_prize ? '<span class="badge prize"><img class="brand" src="starbucks.png" alt="" onerror="this.replaceWith(&#39;☕&#39;)"> 상품이 있어요</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
+      ${room.is_prize ? '<span class="badge prize"><img class="brand" src="starbucks.svg" alt="" onerror="this.replaceWith(&#39;☕&#39;)"> 상품이 있어요</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
     </div>`;
   try {
     const c = document.createElement('canvas'); c.width = 1040;
@@ -1684,7 +1684,7 @@ async function showHostResult() {
   $('hresult').innerHTML = `
     <div class="hbadges">
       <span class="badge">방장 : ${esc(room.title || hostName)}</span>
-      ${room.is_prize ? '<span class="badge prize"><img class="brand" src="starbucks.png" alt="" onerror="this.replaceWith(&#39;☕&#39;)"> 상품이 있어요</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
+      ${room.is_prize ? '<span class="badge prize"><img class="brand" src="starbucks.svg" alt="" onerror="this.replaceWith(&#39;☕&#39;)"> 상품이 있어요</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
     </div>
     <h1>축하합니다 🎉</h1>
     <div class="fpod">${order.map(i => `
