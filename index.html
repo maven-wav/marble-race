@@ -465,10 +465,10 @@ canvas#cv{flex:1 1 0;min-width:0;display:block;height:100%;margin:0!important}
 .lrow .dot{width:11px;height:11px;border-radius:50%;flex:none}
 .lrow .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #big{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
-#big span{font-size:clamp(3rem,11vw,9rem);font-weight:900;letter-spacing:-.04em;opacity:0;transform:scale(.6);
-  text-shadow:0 0 60px rgba(108,123,255,.6)}
-#big span.on{animation:burst 1.5s cubic-bezier(.2,1.2,.4,1) forwards}
-@keyframes burst{0%{opacity:0;transform:scale(.6)}18%{opacity:1;transform:scale(1.06)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.02)}}
+#big span{font-size:clamp(3rem,9vw,7.5rem);font-weight:900;letter-spacing:-.03em;opacity:0;
+  padding:.15em .5em;border-radius:.25em;background:rgba(7,9,18,.92);border:3px solid currentColor;white-space:nowrap}
+#big span.on{animation:burst 2s ease-out forwards}
+@keyframes burst{0%{opacity:0;transform:translateY(20px)}12%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:0}}
 
 /* 호스트 결과 */
 .fpod{display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
@@ -920,7 +920,7 @@ function step(dt) {
 
 /* ---------------- 그리기 ---------------- */
 function resize() {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(1.25, window.devicePixelRatio || 1);   // 2배 해상도는 픽셀이 4배라 GPU 가속 없는 노트북에서 밀린다
   const rect = cv.getBoundingClientRect();
   if (rect.width < 2 || rect.height < 2) return;   // 숨겨진 상태(0×0)면 건드리지 않는다 — 0 이 박히면 레이스가 빈 화면이 된다
   cv.width = Math.round(rect.width * dpr);
