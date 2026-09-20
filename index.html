@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d17">
 <title>구슬 레이스 추첨</title>
+<!-- 굿딜 버튼용 서체. 로드 실패 시 시스템 폰트로 폴백 — 이 CDN 만 예외 허용 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
 <style>
 :root{--bg:#0b0d17;--card:#161a2b;--line:#272c45;--ink:#f2f4ff;--dim:#8b93b8;--accent:#6c7bff;--win:#34d399;--lose:#f87171;--gold:#fbbf24}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif;
-  display:flex;flex-direction:column;min-height:100dvh;
+  font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  display:flex;flex-direction:column;min-height:100dvh;transition:background .4s;
   padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
 .wrap{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:18px;
   text-align:center;max-width:460px;margin:0 auto;width:100%}
@@ -30,30 +32,57 @@ button.ghost{background:transparent;border:1px solid var(--line);color:var(--dim
   border:1px solid var(--line);color:var(--dim);font-size:.82rem;font-weight:700}
 .badge.prize{border-color:#5a4a12;background:#1d1805;color:var(--gold)}
 .err{color:var(--lose);font-size:.88rem;min-height:1.2em;margin:0}
-.rank{font-size:clamp(3.4rem,22vw,6rem);font-weight:900;line-height:1;letter-spacing:-.04em;margin:0}
+.rank{font-size:clamp(4rem,24vw,8rem);font-weight:900;line-height:1;letter-spacing:-.04em;margin:0}
 .rank small{font-size:.3em;font-weight:800;color:var(--dim);margin-left:.1em}
 .medal{font-size:clamp(3.5rem,22vw,6rem);line-height:1;margin:0}
-.board{width:100%;max-height:38vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.brow{display:flex;gap:12px;padding:11px 15px;font-size:.95rem;border-bottom:1px solid #1e2338}
+.name{font-size:1.5rem;font-weight:800;margin:0}
+.pct{color:var(--ink);font-size:1.15rem;font-weight:800;margin:0}
+/* 1·2·3등 배경 — 금/은/동 */
+body.m1{background:radial-gradient(120% 70% at 50% 0%,#3a2c05 0%,#1a1505 45%,var(--bg) 100%)}
+body.m2{background:radial-gradient(120% 70% at 50% 0%,#2e3340 0%,#181b26 45%,var(--bg) 100%)}
+body.m3{background:radial-gradient(120% 70% at 50% 0%,#3b2010 0%,#1c1108 45%,var(--bg) 100%)}
+.m1 .rank{color:var(--gold)}.m2 .rank{color:#e2e8f0}.m3 .rank{color:#e8a27a}
+/* 컨페티 */
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:40;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;opacity:0;
+  animation:cf 1.5s ease-out forwards}
+@keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(105vh) rotate(720deg)}}
+/* 버튼 스피너 */
+button.busy{color:transparent;position:relative}
+button.busy::after{content:'';position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:50%;
+  border:3px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 2단계 — 상품 */
+.reveal{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;animation:reveal .3s ease-out both}
+@keyframes reveal{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
+.reveal .label{font-size:1.35rem;font-weight:800;margin:0}
+.barcode{width:100%;max-width:480px;background:#fff;border-radius:14px;padding:28px 6px}
+.barcode img{display:block;width:100%;height:auto}
+.note{color:var(--dim);font-size:.95rem;line-height:1.7;margin:0}
+.note b{color:var(--ink)}
+.ctext{font-size:1.1rem;line-height:1.5;margin:0;font-weight:600}
+.goodeal-btn{
+  display:block;width:100%;max-width:480px;margin:20px auto 0;
+  padding:18px 20px;border:0;border-radius:14px;
+  background:#FFEB00;color:#000;
+  font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  font-weight:800;font-size:18px;letter-spacing:-0.02em;
+  text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box;
+}
+.goodeal-btn:active{background:#F2DE00;transform:scale(0.98)}
+/* 3단계 — 전체 순위 (접힘) */
+.toggle{background:transparent;border:0;color:var(--dim);font-size:.95rem;font-weight:700;padding:10px;width:auto}
+.board{width:100%;max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.brow{display:flex;gap:12px;padding:11px 15px;font-size:.95rem;border-bottom:1px solid #1e2338;align-items:center}
 .brow:last-child{border-bottom:0}
 .brow .r{width:2.6em;text-align:right;font-variant-numeric:tabular-nums;color:var(--dim);font-weight:800}
 .brow .nm{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brow.me{background:#1e2440;color:var(--ink)}
 .brow.me .r{color:var(--accent)}
 .brow.top .r{color:var(--gold)}
-.win{color:var(--win)}
-.coupon{position:fixed;inset:0;background:#fff;z-index:50;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:18px;padding:24px}
-.coupon img{max-width:100%;max-height:62vh;object-fit:contain;border-radius:12px}
-.coupon .ct{color:#111;font-size:1.15rem;font-weight:800;text-align:center;margin:0}
-.coupon .cs{color:#666;font-size:.9rem;text-align:center;margin:0}
-.coupon button{background:#111;max-width:320px}
-.reward{width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px;
-  display:flex;flex-direction:column;gap:12px}
-.reward p{margin:0;line-height:1.5}
 .foot{text-align:center;color:#4d5477;font-size:.72rem;padding-top:14px}
-@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
-.pop{animation:pop .32s cubic-bezier(.2,1.3,.5,1) both}
+@keyframes pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .4s ease-out both}
 </style>
 </head>
 <body>
@@ -168,83 +197,142 @@ function screenRacing(s) {
 }
 
 /* ---------- 4. 결과 ---------- */
+const OPENED_KEY = 'marble_opened';   // 값 = 상품을 연 player_id
+let me = null;                        // 마지막 player_state (등수·총원)
+
+function pctLine(rank, total) {
+  if (!rank || !total) return '';
+  const pct = Math.ceil(rank / total * 100);
+  if (pct <= 10) return `상위 ${pct}%! 아깝네요 😄`;
+  if (pct <= 30) return `상위 ${pct}%`;
+  if (pct <= 70) return '';
+  return '완주했어요 🏁';
+}
+function setMedalBg(rank) {
+  document.body.classList.remove('m1', 'm2', 'm3');
+  if (rank >= 1 && rank <= 3) document.body.classList.add('m' + rank);
+}
+function confetti() {
+  const box = document.createElement('div');
+  box.className = 'confetti';
+  const colors = ['#fbbf24', '#6c7bff', '#34d399', '#f87171', '#f2f4ff', '#fb923c'];
+  for (let i = 0; i < 36; i++) {
+    const c = document.createElement('i');
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[i % colors.length];
+    c.style.animationDelay = Math.random() * .4 + 's';
+    c.style.transform = `rotate(${Math.random() * 360}deg)`;
+    box.appendChild(c);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 2200);
+}
+
+// phase 가 result 로 바뀌면 자동. 이미 상품을 연 적이 있으면 1단계를 건너뛴다
 function screenResult(s) {
+  me = s;
+  setMedalBg(s.final_rank);
+  if (localStorage.getItem(OPENED_KEY) === myId) return openReward();
+  screenRank(s);
+}
+
+/* 1단계 — 등수만. 상품 얘기는 아직 안 한다 */
+function screenRank(s) {
   const r = s.final_rank, top3 = r && r <= 3;
+  const pct = pctLine(r, s.total);
   render(`
     ${top3 ? `<p class="medal pop">${MEDAL[r - 1]}</p>` : ''}
-    <span class="badge">${esc(s.nick)}</span>
-    <p class="rank ${top3 ? 'win' : ''}">${r || '–'}<small>등</small></p>
-    <p class="sub">${s.total ? `${s.total}명 중` : ''}</p>
-    <button id="claim">🎁 결과 확인</button>
-    <div id="reward"></div>
-    <div class="board" id="board"><p class="sub" style="padding:16px">순위 불러오는 중…</p></div>
+    <p class="rank pop">${r || '–'}<small>등</small></p>
+    ${top3
+      ? `<p class="name">${esc(s.nick)}</p>`
+      : `<p class="sub">${s.total ? `${s.total}명 중` : ''}</p>${pct ? `<p class="pct">${pct}</p>` : ''}`}
+    <button id="claim">${top3 ? '🎁 상품 받기' : '플링크 7% 할인 받기'}</button>
     <button class="ghost" id="leave" style="max-width:220px;font-size:.9rem;padding:12px">다른 방으로 입장</button>
   `);
-  document.getElementById('claim').onclick = claimReward;
+  if (top3) confetti();
+  document.getElementById('claim').onclick = openReward;
   document.getElementById('leave').onclick = leave;
-  loadBoard(s);
 }
 
-async function loadBoard(s) {
-  try {
-    const rows = await rpc('marble_race_results', { p_id: myId });
-    const el = document.getElementById('board');
-    if (!el) return;
-    el.innerHTML = rows.map(x =>
-      `<div class="brow ${x.rank === s.final_rank ? 'me' : ''} ${x.rank <= 3 ? 'top' : ''}">
-         <span class="r">${x.rank}</span><span class="nm">${esc(x.nick)}</span></div>`).join('');
-    const me = el.querySelector('.brow.me');
-    if (me) me.scrollIntoView({ block: 'center' });
-  } catch (_) {}
-}
-
-let reward = null;
-async function claimReward() {
+/* 2단계 — 버튼을 거쳐야 열린다. kind 만 보고 분기 (등수로 판단하지 않음) */
+async function openReward() {
   const btn = document.getElementById('claim');
-  btn.disabled = true; btn.textContent = '불러오는 중…';
+  if (btn) { btn.disabled = true; btn.classList.add('busy'); }
+  let rw;
   try {
-    if (!reward) reward = await rpc('marble_my_reward', { p_id: myId });
-    // 등수가 아니라 kind 만 보고 그립니다 — 연습판/쿠폰 미등록 판단은 서버 몫
-    if (reward.kind === 'prize') showPrize(reward);
-    else showConsolation(reward);
-    btn.disabled = false; btn.textContent = reward.kind === 'prize' ? '🎁 쿠폰 다시 보기' : '🎁 결과 확인';
+    rw = await rpc('marble_my_reward', { p_id: myId });   // 매번 서버에서 새로 받는다 (캐시 안 함)
   } catch (e) {
-    btn.disabled = false; btn.textContent = '🎁 결과 확인';
+    if (btn) { btn.disabled = false; btn.classList.remove('busy'); }
+    else screenRank(me);
     alert(errMsg(e, '결과를 불러오지 못했습니다. 다시 시도해주세요.'));
+    return;
   }
+  localStorage.setItem(OPENED_KEY, myId);
+  if (rw.kind === 'prize') screenPrize(rw);
+  else screenConsolation(rw);
 }
 
-function showPrize(p) {
-  const w = document.createElement('div');
-  w.className = 'coupon';
-  w.innerHTML = `
-    <p class="ct">${MEDAL[p.rank - 1] || ''} ${p.rank}등 · ${esc(p.label || '쿠폰')}</p>
-    <img src="${p.image}" alt="쿠폰 바코드">
-    <p class="cs">☀️ 화면 밝기를 올려주세요<br>이 화면은 본인에게만 보입니다. 캡처해두세요.</p>
-    <button>닫기</button>`;
-  w.querySelector('button').onclick = () => w.remove();
-  document.body.appendChild(w);
+function screenPrize(p) {
+  render(`
+    <div class="reveal">
+      <p class="rank" style="font-size:2.2rem">${MEDAL[p.rank - 1] || ''} ${p.rank}<small>등</small></p>
+      <p class="label">${esc(p.label || '상품')}</p>
+      <div class="barcode"><img src="${p.image}" alt="쿠폰 바코드"></div>
+      <p class="note">☀️ <b>화면 밝기를 최대로</b> 올려주세요<br>📸 <b>이 화면을 캡처</b>해두세요</p>
+    </div>
+    ${boardToggle()}
+  `);
+  bindBoard();
 }
 
-function showConsolation(c) {
-  const el = document.getElementById('reward');
-  if (!el) return;
-  el.className = 'reward pop';
-  el.innerHTML = `
-    <p>${esc(c.text || '아쉽지만 다음 기회에!')}</p>
-    ${c.url ? `<button id="goCoupon">쿠폰 받으러 가기</button>` : ''}`;
-  const b = document.getElementById('goCoupon');
-  if (b) b.onclick = () => window.open(c.url, '_blank', 'noopener');
-  document.getElementById('claim').style.display = 'none';
+function screenConsolation(c) {
+  render(`
+    <div class="reveal">
+      <p class="rank" style="font-size:2.6rem">${c.rank}<small>등</small></p>
+      <p class="ctext">${esc(c.text || '')}</p>
+      ${c.url ? `<a class="goodeal-btn" href="${esc(c.url)}" target="_blank" rel="noopener">플링크 7% 할인 받기</a>` : ''}
+    </div>
+    ${boardToggle()}
+  `);
+  bindBoard();
+}
+
+/* 3단계 — 전체 순위. 기본 접힘, 펼칠 때 로드 */
+function boardToggle() {
+  return `<button class="toggle" id="boardBtn">전체 순위 보기 ▾</button>
+          <div class="board" id="board" hidden></div>
+          <button class="ghost" id="leave" style="max-width:220px;font-size:.9rem;padding:12px">다른 방으로 입장</button>`;
+}
+function bindBoard() {
+  document.getElementById('leave').onclick = leave;
+  const btn = document.getElementById('boardBtn'), board = document.getElementById('board');
+  let loaded = false;
+  btn.onclick = async () => {
+    const open = board.hidden;
+    board.hidden = !open;
+    btn.textContent = open ? '전체 순위 접기 ▴' : '전체 순위 보기 ▾';
+    if (!open || loaded) return;
+    board.innerHTML = '<p class="sub" style="padding:16px">순위 불러오는 중…</p>';
+    try {
+      const rows = await rpc('marble_race_results', { p_id: myId });
+      board.innerHTML = rows.map(x =>
+        `<div class="brow ${me && x.rank === me.final_rank ? 'me' : ''} ${x.rank <= 3 ? 'top' : ''}">
+           <span class="r">${x.rank <= 3 ? MEDAL[x.rank - 1] : x.rank}</span><span class="nm">${esc(x.nick)}</span></div>`).join('');
+      loaded = true;
+      const mine = board.querySelector('.brow.me');
+      if (mine) mine.scrollIntoView({ block: 'center' });
+    } catch (_) { board.innerHTML = '<p class="sub" style="padding:16px">순위를 불러오지 못했습니다.</p>'; }
+  };
 }
 
 /* ---------- 폴링 ---------- */
 let timer = null;
 function leave() {
   clearTimeout(timer);
-  document.querySelectorAll('.coupon').forEach(el => el.remove());
   localStorage.removeItem('marble_pid');
-  myId = null; reward = null; lastPhase = null;
+  localStorage.removeItem(OPENED_KEY);
+  setMedalBg(0);
+  myId = null; me = null; lastPhase = null;
   screenJoin();
 }
 
@@ -262,7 +350,7 @@ async function poll() {
       else if (s.phase === 'result') screenResult(s);
     }
     lastPhase = s.phase;
-    if (s.phase === 'lobby') reward = null;
+    if (s.phase !== 'result') { setMedalBg(0); localStorage.removeItem(OPENED_KEY); }
   } catch (_) { /* 순간 끊겨도 다음 폴링에서 복구 */ }
   clearTimeout(timer);
   timer = setTimeout(poll, CONFIG.POLL_MS + Math.random() * 500);
