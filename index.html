@@ -429,6 +429,7 @@ button.link:active{transform:none}
 .hscreen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;gap:2vh;
   padding:3vh 4vw calc(96px + env(safe-area-inset-bottom));text-align:center;overflow:auto}
 .hscreen>:first-child{margin-top:auto}.hscreen>:last-child{margin-bottom:auto}
+.hscreen>*{flex-shrink:0}   /* 내용이 넘쳐도 순위표 같은 스크롤 박스가 눌리지 않게 */
 .hide{display:none!important}
 .hscreen h1{font-size:clamp(2rem,4.8vw,3.8rem);text-shadow:3px 3px 0 var(--yellow)}
 .hsub{color:var(--dim);font-size:clamp(1rem,2vw,1.5rem);margin:0;line-height:1.5;font-weight:700}
@@ -500,6 +501,23 @@ canvas#cv{flex:1 1 0;min-width:0;display:block;height:100%;margin:0!important}
   padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px 10px;text-align:left;box-shadow:0 6px 0 var(--navy)}
 .hboard .brow{padding:6px 10px;border:0}
 
+/* 모바일에서 호스트 화면을 열었을 때 */
+@media (max-width:640px){
+  .hscreen{padding-left:12px;padding-right:12px;gap:12px}
+  .codebig{font-size:clamp(2.2rem,14vw,3.4rem);letter-spacing:.1em}
+  .qrbox{padding:10px}
+  .qrbox canvas{width:min(60vw,320px);height:min(60vw,320px)}
+  .fpod{gap:10px;align-items:stretch}
+  .fcard{min-width:0;flex:1 1 30%;padding:12px 8px}
+  .fcard .fn{font-size:1.1rem;max-width:9ch}
+  .fcard.g{transform:none;margin:0}
+  .fcard .coin.mid{width:48px;height:48px;font-size:22px}
+  .hboard{grid-template-columns:1fr 1fr;max-height:36vh;width:100%}
+  .hbadges .badge{font-size:.85rem}
+  button.big{font-size:1.1rem;padding:12px 26px}
+  #bar{gap:6px;padding:10px 8px calc(10px + env(safe-area-inset-bottom))}
+  #bar button{font-size:.85rem;padding:10px 12px}
+}
 /* 쿠폰·멘트 설정 */
 .prizes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
 .pz{background:#fff;border:3px solid var(--navy);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 0 var(--navy)}
