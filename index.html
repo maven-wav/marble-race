@@ -1729,7 +1729,7 @@ async function showHostResult() {
     <div class="hboard">${rows.map(x =>
       `<div class="brow ${x.rank <= 3 ? 'top' : ''}"><span class="r">${x.rank}</span><span class="nm">${esc(x.nick)}</span></div>`).join('')}</div>`;
   bar.innerHTML = `<button class="ghost sm" id="myReward">🎁 방장 결과 보기</button>
-                   <button class="danger" id="reset">초기화 (참가자 비우기)</button>
+                   <button class="danger" id="reset">다시하기</button>
                    <button class="ghost sm" id="hleave">나가기</button>`;
   $('reset').onclick = doReset;
   $('hleave').onclick = closeRoom;
@@ -1758,14 +1758,14 @@ async function showHostReward() {
 }
 
 async function doReset() {
-  if (!confirm('이 방의 참가자와 결과를 모두 지우고 대기실로 돌아갑니다. 쿠폰·멘트는 유지됩니다. 진행할까요?')) return;
+  if (!confirm('같은 방 코드로 다시 시작합니다. 참가자와 결과는 지워지고 쿠폰·멘트는 유지됩니다. 진행할까요?')) return;
   try {
     await hostRpc('marble_host_reset', { p_room: room.room_id });
     const j = await rpc('marble_join_game', { p_code: room.code, p_nick: room.title || hostName });   // 방장 다시 입장
     localStorage.setItem(HOST_PID_KEY, j.player_id);
     await openHostRoom(room.room_id);
   }
-  catch (e) { alert(errMsg(e, '초기화 실패')); }
+  catch (e) { alert(errMsg(e, '다시하기 실패')); }
 }
 
 /* ---- 루프 ---- */
