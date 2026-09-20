@@ -68,4 +68,4 @@ Supabase `marble` 스키마 (`config` / `rooms` / `players` / `prizes`). 테이�
 
 ## 배포
 
-Vercel 정적 배포 (`maven-wav/marble-race` → 프로젝트 `marble-race`). `main` 에 push 하면 자동 배포됩니다.
+Vercel 정적 배포 — https://marble-race-inky-rho.vercel.app (`maven-wav/marble-race` → 프로젝트 `marble-race`). `main` 에 push 하면 자동 배포됩니다.
