@@ -1669,9 +1669,7 @@ async function showHostResult() {
     <div class="fpod">${order.map(i => `
       <div class="fcard ${C[i]}"><div class="fm">${MEDAL[i]}</div><div class="fr">${L[i]}</div>
         <div class="fn">${esc(top[i].nick)}</div></div>`).join('')}</div>
-    <p class="hsub">${room.is_prize
-      ? '1·2·3등은 폰에서 <b>🎁 상품 받기</b>를 눌러주세요<br>나머지 분들도 폰에서 <b>내 등수</b>와 할인 쿠폰을 확인하세요'
-      : '연습판입니다 — 모든 참가자 폰에는 등수와 아쉬움 멘트가 표시됩니다'}</p>
+    <p class="hsub">1,2,3등은 <b>스타벅스 커피 상품권</b>을 드려요.<br>모바일 폰에서 <b>쿠폰 확인하기</b> 클릭</p>
     <div class="hboard">${rows.map(x =>
       `<div class="brow ${x.rank <= 3 ? 'top' : ''}"><span class="r">${x.rank}</span><span class="nm">${esc(x.nick)}</span></div>`).join('')}</div>`;
   bar.innerHTML = `<button class="ghost sm" id="myReward">🎁 방장 결과 보기</button>
