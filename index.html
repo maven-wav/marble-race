@@ -440,7 +440,8 @@ button.danger{width:auto;background:transparent;border:1px solid #4a2230;color:#
 
 /* 레이스 */
 #race{flex-direction:row;align-items:stretch;gap:0;padding:0 0 calc(84px + env(safe-area-inset-bottom));overflow:hidden}
-canvas#cv{flex:1 1 0;min-width:0;display:block;height:auto}
+canvas#cv{flex:1 1 0;min-width:0;display:block;height:100%;margin:0!important}
+#race>*{margin:0!important}
 #side{flex:none;width:clamp(220px,20vw,340px);border-left:1px solid var(--line);background:#0b0e1b;
   display:flex;flex-direction:column;padding:20px 18px;gap:14px;overflow:hidden;text-align:left}
 #side h2{margin:0;font-size:1rem;letter-spacing:.12em;color:var(--dim);font-weight:800}
@@ -915,11 +916,11 @@ function step(dt) {
 function resize() {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const rect = cv.getBoundingClientRect();
+  if (rect.width < 2 || rect.height < 2) return;   // 숨겨진 상태(0×0)면 건드리지 않는다 — 0 이 박히면 레이스가 빈 화면이 된다
   cv.width = Math.round(rect.width * dpr);
   cv.height = Math.round(rect.height * dpr);
   VIEW = { w: rect.width, h: rect.height, dpr };
 }
-window.addEventListener('resize', resize);
 
 function draw() {
   const { w, h, dpr } = VIEW;
