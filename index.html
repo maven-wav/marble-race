@@ -1081,7 +1081,7 @@ async function keepAwake() {
 document.addEventListener('visibilitychange', () => { if (!document.hidden && (myId || room)) keepAwake(); });
 const app = $('app');
 const render = h => { app.innerHTML = h; };
-const urlCode = (new URLSearchParams(location.search).get('r') || '').trim().toUpperCase();
+let urlCode = (new URLSearchParams(location.search).get('r') || '').trim().toUpperCase();
 
 /* ---------------- 입구 ---------------- */
 function screenEntry(err = '') {
@@ -1249,7 +1249,12 @@ function clearCurrent() {
   setMedalBg(0);
   myId = null; me = null; lastPhase = null;
 }
-function leave() { clearCurrent(); screenEntry(); }
+function leave() {
+  clearCurrent();
+  // QR 로 들어온 주소(?r=코드)를 지워서, 다른 방 코드를 넣을 수 있는 일반 입구로
+  if (urlCode) { urlCode = ''; try { history.replaceState(null, '', location.pathname); } catch (_) {} }
+  screenEntry();
+}
 
 async function poll() {
   if (!myId) return;
