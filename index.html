@@ -380,6 +380,7 @@ button.link:hover{color:var(--ink)}
   border:1px solid var(--line);color:var(--dim);font-size:.82rem;font-weight:700}
 .badge.prize{border-color:#5a4a12;background:#1d1805;color:var(--gold)}
 .badge.practice{border-color:#2a3350;color:#7f88b0}
+.badge .brand{height:1.5em;width:auto;vertical-align:middle;margin-right:.2em;border-radius:50%}
 .err{color:var(--lose);font-size:.88rem;min-height:1.2em;margin:0}
 
 /* 입구 카드 */
@@ -1454,7 +1455,7 @@ function showHostLobby() {
     <p class="hsub">QR 을 스캔하거나 방 코드를 입력해서 참가 · <b id="cnt">${room.join_count}</b> 명</p>
     <div class="hbadges">
       <span class="badge">방장 : ${esc(room.title || hostName)}</span>
-      ${room.is_prize ? '<span class="badge prize">🎁 상품 걸린 판</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
+      ${room.is_prize ? '<span class="badge prize"><img class="brand" src="starbucks.png" alt="" onerror="this.replaceWith('☕')"> 상품이 있어요</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
     </div>`;
   try {
     const c = document.createElement('canvas'); c.width = 1040;
@@ -1683,7 +1684,7 @@ async function showHostResult() {
   $('hresult').innerHTML = `
     <div class="hbadges">
       <span class="badge">방장 : ${esc(room.title || hostName)}</span>
-      ${room.is_prize ? '<span class="badge prize">🎁 상품 걸린 판</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
+      ${room.is_prize ? '<span class="badge prize"><img class="brand" src="starbucks.png" alt="" onerror="this.replaceWith('☕')"> 상품이 있어요</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
     </div>
     <h1>축하합니다 🎉</h1>
     <div class="fpod">${order.map(i => `
