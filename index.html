@@ -1570,11 +1570,11 @@ async function showSettings() {
     ${room.is_prize ? `
       <h2>🎁 쿠폰 등록</h2>
       <p class="sub">등수별 쿠폰 바코드 이미지(900KB 이하)를 올려두세요. 레이스가 끝나면 <b>해당 등수 당첨자 폰에만</b> 보입니다.<br>
-         이미지가 없는 등수는 당첨자도 아쉬움 멘트를 받습니다.</p>
+         한 번 등록하면 <b>다음에 만드는 상품 방에도 자동으로 들어갑니다.</b> 이미지가 없는 등수는 당첨자도 아쉬움 멘트를 받습니다.</p>
       <div class="prizes">${PZ.map(p => { const s = stOf(p.r); return `
         <div class="pz"><h3>${p.t} <span class="st ${s && s.has_image ? 'ok' : ''}" id="st${p.r}">${s && s.has_image ? '✓ 등록됨' : '미등록'}</span></h3>
           <div class="thumb" id="th${p.r}">${s && s.has_image ? '등록된 이미지 (미리보기 없음)' : '이미지 없음'}</div>
-          <input type="text" id="lb${p.r}" placeholder="쿠폰 이름 (예: 플링크 커피)" value="${esc(s && s.label || '')}">
+          <input type="text" id="lb${p.r}" placeholder="쿠폰 이름 (예: 스타벅스 3만원 교환권)" value="${esc(s && s.label || '')}">
           <button class="ghost" data-r="${p.r}">이미지 선택</button>
           <input type="file" accept="image/*" id="fi${p.r}" style="display:none">
           <button data-save="${p.r}">저장</button>
