@@ -1121,15 +1121,39 @@ let myId = localStorage.getItem('marble_pid') || null;
 let lastPhase = null;
 let timer = null;
 
+// 방 코드별 참가 세션 — 같은 방에 다시 들어오면 새로 참가하지 않고 이 세션으로 복귀 (중복 참가 방지)
+const SESS_KEY = 'marble_sessions';
+const sessions = () => { try { return JSON.parse(localStorage.getItem(SESS_KEY)) || {}; } catch (_) { return {}; } };
+function saveSession(code, pid) { const m = sessions(); m[code] = pid; localStorage.setItem(SESS_KEY, JSON.stringify(m)); }
+function dropSession(code) { const m = sessions(); delete m[code]; localStorage.setItem(SESS_KEY, JSON.stringify(m)); }
+
+function enter(pid) {
+  myId = pid;
+  localStorage.setItem('marble_pid', myId);
+  localStorage.removeItem(OPENED_KEY);
+  lastPhase = null;
+  poll();
+}
+
+// 이 방에 이미 참가한 세션이 살아 있으면 그걸로 복귀. 없거나 방이 초기화됐으면 false
+async function resumeSession(code) {
+  const pid = sessions()[code];
+  if (!pid) return false;
+  try {
+    const s = await rpc('marble_player_state', { p_id: pid });
+    if (s && s.code === code) { enter(pid); return true; }
+  } catch (_) { return false; }   // 네트워크 오류면 새로 참가하지 않고 실패로 둔다
+  dropSession(code);
+  return false;
+}
+
 async function joinRoom(code, nick) {
   const btn = $('join'); btn.disabled = true; btn.textContent = '입장 중…';
   try {
+    if (await resumeSession(code)) return;
     const r = await rpc('marble_join_game', { p_code: code, p_nick: nick });
-    myId = r.player_id;
-    localStorage.setItem('marble_pid', myId);
-    localStorage.removeItem(OPENED_KEY);
-    lastPhase = null;
-    poll();
+    saveSession(code, r.player_id);
+    enter(r.player_id);
   } catch (e) {
     screenEntry(errMsg(e, '입장에 실패했습니다. 다시 시도해주세요.'));
   }
@@ -1142,9 +1166,7 @@ function screenLobby(s) {
     <h1>${esc(s.nick)} 님, 입장 완료!</h1>
     <p class="sub" style="color:var(--accent);font-size:.85rem">화면에 표시될 이름입니다</p>
     <p class="sub">곧 시작합니다.<br>앞 화면을 봐주세요.</p>
-    <button class="ghost" id="leave" style="max-width:220px;font-size:.9rem;padding:12px">나가기</button>
   `);
-  $('leave').onclick = leave;
 }
 
 function screenRacing(s) {
@@ -1155,22 +1177,26 @@ function screenRacing(s) {
   `);
 }
 
-function leave() {
+function clearCurrent() {
   clearTimeout(timer);
   localStorage.removeItem('marble_pid');
   localStorage.removeItem(OPENED_KEY);
   setMedalBg(0);
   myId = null; me = null; lastPhase = null;
-  screenEntry();
 }
+function leave() { clearCurrent(); screenEntry(); }
 
 async function poll() {
   if (!myId) return;
   try {
     const s = await rpc('marble_player_state', { p_id: myId });
     if (!s) return leave();
-    // QR 로 다른 방에 들어온 경우 — 이전 방 기록은 버리고 새로 입장
-    if (urlCode && s.code !== urlCode) return leave();
+    // QR 로 다른 방에 들어온 경우 — 현재 세션을 끊고, 그 방에 참가한 적이 있으면 그 세션으로 복귀
+    if (urlCode && s.code !== urlCode) {
+      clearCurrent();
+      if (!(await resumeSession(urlCode))) screenEntry();
+      return;
+    }
     // 결과 화면은 한 번만 그립니다 (상품 화면이 닫혀버리지 않도록)
     if (!(s.phase === 'result' && lastPhase === 'result')) {
       if      (s.phase === 'lobby')  screenLobby(s);
@@ -1584,6 +1610,7 @@ window.addEventListener('resize', () => { if (mode === 'race') resize(); });
 const savedHostRoom = localStorage.getItem(HOST_ROOM_KEY);
 if (savedHostRoom && !urlCode) openHostRoom(savedHostRoom);
 else if (myId) poll();
+else if (urlCode && sessions()[urlCode]) resumeSession(urlCode).then(ok => { if (!ok) screenEntry(); });
 else screenEntry();
 document.addEventListener('visibilitychange', () => { if (!document.hidden && myId) poll(); });
 </script>
