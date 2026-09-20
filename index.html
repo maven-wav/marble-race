@@ -608,8 +608,7 @@ const REST_W   = 0.45;    // 벽 반발
 const REST_M   = 0.22;    // 구슬끼리 반발
 const DAMP     = 0.9975;
 const MAX_V    = 1400;
-let   LITE     = localStorage.getItem('marble_lite') === '1';   // ⚡ 저사양 모드 — 물리 서브스텝·해상도·이름표를 줄인다
-let   SUB      = LITE ? 2 : 3;       // 프레임당 물리 서브스텝
+const SUB      = 3;       // 프레임당 물리 서브스텝
 const REST_SEG  = 0.45;   // 경사판·회전바 반발
 const REST_BUMP = 0.92;   // 범퍼 반발 (크게 튕김)
 let   GOAL_Y    = 0;      // 코스를 만들면서 정해집니다
@@ -921,7 +920,7 @@ function step(dt) {
 
 /* ---------------- 그리기 ---------------- */
 function resize() {
-  const dpr = LITE ? 1 : Math.min(1.25, window.devicePixelRatio || 1);   // 2배 해상도는 픽셀이 4배라 저사양 노트북에서 밀린다
+  const dpr = Math.min(1.25, window.devicePixelRatio || 1);   // 2배 해상도는 픽셀이 4배라 저사양 노트북에서 밀린다
   const rect = cv.getBoundingClientRect();
   if (rect.width < 2 || rect.height < 2) return;   // 숨겨진 상태(0×0)면 건드리지 않는다 — 0 이 박히면 레이스가 빈 화면이 된다
   cv.width = Math.round(rect.width * dpr);
@@ -967,7 +966,7 @@ function draw() {
     ctx.fillStyle = m.color; ctx.fill();
   }
   // 선두 5명만 이름표 — 150개를 다 쓰면 아무것도 안 읽힙니다
-  const lead5 = marbles.filter(m => !m.done).sort((a, b) => b.y - a.y).slice(0, LITE ? 3 : 5);
+  const lead5 = marbles.filter(m => !m.done).sort((a, b) => b.y - a.y).slice(0, 5);
   ctx.font = '800 26px system-ui,sans-serif';
   ctx.textAlign = 'left';
   const placed = [];
@@ -1657,15 +1656,8 @@ async function startRace() {
   buildCourse(); setupMarbles(players);
   camY = 0; lastT = 0; renderPodium(); resize();
   bar.innerHTML = `<span class="badge">${players.length}명 · 입장 마감</span>
-                   <button class="big" id="go">출발!</button>
-                   <button class="ghost sm" id="lite">${LITE ? '⚡ 저사양 모드 켜짐' : '⚡ 저사양 모드'}</button>`;
+                   <button class="big" id="go">출발!</button>`;
   $('go').onclick = e => { running = true; e.target.disabled = true; };
-  $('lite').onclick = e => {
-    LITE = !LITE; SUB = LITE ? 2 : 3;
-    localStorage.setItem('marble_lite', LITE ? '1' : '0');
-    e.target.textContent = LITE ? '⚡ 저사양 모드 켜짐' : '⚡ 저사양 모드';
-    resize();
-  };
 }
 
 const bigEl = $('bigtxt');
