@@ -365,7 +365,7 @@ body.host .wrap,body.host .foot{display:none}
   text-align:center;max-width:460px;margin:0 auto;width:100%}
 h1{font-size:1.45rem;margin:0;font-weight:800;letter-spacing:-.02em}
 .sub{color:var(--dim);font-size:.95rem;margin:0;line-height:1.5}
-.emoji{font-size:clamp(4rem,26vw,7rem);line-height:1;margin:0}
+.emoji{font-size:clamp(4rem,26vw,7rem);line-height:1;margin:0;user-select:none;-webkit-user-select:none}
 input{width:100%;padding:16px 18px;font-size:1.1rem;border-radius:14px;
   border:1px solid var(--line);background:var(--card);color:var(--ink);outline:none;font-family:inherit}
 input:focus{border-color:var(--accent)}
@@ -1044,9 +1044,8 @@ const urlCode = (new URLSearchParams(location.search).get('r') || '').trim().toU
 function screenEntry(err = '') {
   const savedNick = localStorage.getItem('marble_nick') || '';
   render(`
-    <p class="emoji">🎲</p>
+    <p class="emoji" id="dice">🎲</p>
     <h1>구슬 레이스 추첨</h1>
-    <p class="sub">QR 로 초대 · 200명도 OK · 결과는 각자 폰에서</p>
     <div class="card">
       <input id="nick" placeholder="이름 (1~14자)" maxlength="14" value="${esc(savedNick)}"
              autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -1064,7 +1063,6 @@ function screenEntry(err = '') {
       `}
       <p class="err">${esc(err)}</p>
     </div>
-    ${urlCode ? '' : '<button class="link" id="prizeMode">🎁 상품 모드로 방 만들기</button>'}
   `);
   const nick = $('nick');
   nick.focus();
@@ -1083,7 +1081,16 @@ function screenEntry(err = '') {
   nick.onkeydown = e => { if (e.key === 'Enter') $('join').click(); };
   if ($('code')) $('code').onkeydown = e => { if (e.key === 'Enter') $('join').click(); };
   if ($('create')) $('create').onclick = () => { const v = getNick(); if (v) createRoom(v, null); };
-  if ($('prizeMode')) $('prizeMode').onclick = () => { const v = getNick(); if (v) askPin(v); };
+  // 숨은 입구 — 주사위를 7번 누르면 상품 모드(PIN)
+  let taps = 0, tapTimer = null;
+  $('dice').onclick = () => {
+    if (urlCode) return;
+    taps++;
+    clearTimeout(tapTimer); tapTimer = setTimeout(() => { taps = 0; }, 1500);
+    if (taps < 7) return;
+    taps = 0;
+    const v = getNick(); if (v) askPin(v);
+  };
 }
 
 function askPin(name) {
