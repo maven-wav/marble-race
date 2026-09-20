@@ -535,6 +535,7 @@ button.busy::after{content:'';position:absolute;inset:0;margin:auto;width:22px;h
   text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box;
 }
 .goodeal-btn:active{background:#F2DE00;transform:scale(0.98)}
+button.goodeal-btn:disabled{opacity:.6}
 /* 3단계 — 전체 순위 (접힘) */
 .toggle{background:transparent;border:0;color:var(--dim);font-size:.95rem;font-weight:700;padding:10px;width:auto}
 .board{width:100%;max-height:44vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
@@ -1280,48 +1281,46 @@ function confetti() {
   setTimeout(() => box.remove(), 2200);
 }
 
-// phase 가 result 로 바뀌면 자동. 이미 상품을 연 적이 있으면 1단계를 건너뛴다
-function screenResult(s) {
+// phase 가 result 로 바뀌면 자동. 결과 종류(kind)를 먼저 받아 버튼을 정한다 — 바코드는 여전히 버튼을 눌러야 열린다
+let reward = null;
+async function screenResult(s) {
   me = s;
   setMedalBg(s.final_rank);
-  if (localStorage.getItem(OPENED_KEY) === myId) return openReward();
+  render(`<p class="rank pop">${s.final_rank || '–'}<small>등</small></p><p class="sub">결과 확인 중…</p>`);
+  try { reward = await rpc('marble_my_reward', { p_id: myId }); }   // 매번 서버에서 새로 받는다 (캐시 안 함)
+  catch (e) {
+    reward = null;
+    render(`<p class="rank">${s.final_rank || '–'}<small>등</small></p>
+            <p class="err">${esc(errMsg(e, '결과를 불러오지 못했습니다.'))}</p>
+            <button class="goodeal-btn" id="retry">다시 확인</button>`);
+    document.getElementById('retry').onclick = () => screenResult(s);
+    return;
+  }
+  // 상품을 이미 연 적이 있으면 바코드 화면으로 바로
+  if (reward.kind === 'prize' && localStorage.getItem(OPENED_KEY) === myId) return screenPrize(reward);
   screenRank(s);
 }
 
-/* 1단계 — 등수만. 상품 얘기는 아직 안 한다 */
+/* 결과 화면 — 등수 + 버튼 하나. 1·2·3등(prize)은 버튼 → 바코드, 나머지는 버튼이 곧 굿딜 링크 */
 function screenRank(s) {
   const r = s.final_rank, top3 = r && r <= 3;
   const pct = pctLine(r, s.total);
+  const isPrize = reward && reward.kind === 'prize';
   render(`
     ${top3 ? `<p class="medal pop">${MEDAL[r - 1]}</p>` : ''}
     <p class="rank pop">${r || '–'}<small>등</small></p>
     ${top3
       ? `<p class="name">${esc(s.nick)}</p>`
       : `<p class="sub">${s.total ? `${s.total}명 중` : ''}</p>${pct ? `<p class="pct">${pct}</p>` : ''}`}
-    <button id="claim">${top3 ? '🎁 상품 받기' : '플링크 7% 할인 받기'}</button>
-    <button class="ghost" id="leave" style="max-width:220px;font-size:.9rem;padding:12px">다른 방으로 입장</button>
+    ${isPrize
+      ? `<button class="goodeal-btn" id="claim">🎁 상품 받기</button>`
+      : `${reward && reward.text ? `<p class="ctext">${esc(reward.text)}</p>` : ''}
+         ${reward && reward.url ? `<a class="goodeal-btn" href="${esc(reward.url)}" target="_blank" rel="noopener">플링크 7% 할인 받기</a>` : ''}`}
+    ${boardToggle()}
   `);
   if (top3) confetti();
-  document.getElementById('claim').onclick = openReward;
-  document.getElementById('leave').onclick = leave;
-}
-
-/* 2단계 — 버튼을 거쳐야 열린다. kind 만 보고 분기 (등수로 판단하지 않음) */
-async function openReward() {
-  const btn = document.getElementById('claim');
-  if (btn) { btn.disabled = true; btn.classList.add('busy'); }
-  let rw;
-  try {
-    rw = await rpc('marble_my_reward', { p_id: myId });   // 매번 서버에서 새로 받는다 (캐시 안 함)
-  } catch (e) {
-    if (btn) { btn.disabled = false; btn.classList.remove('busy'); }
-    else screenRank(me);
-    alert(errMsg(e, '결과를 불러오지 못했습니다. 다시 시도해주세요.'));
-    return;
-  }
-  localStorage.setItem(OPENED_KEY, myId);
-  if (rw.kind === 'prize') screenPrize(rw);
-  else screenConsolation(rw);
+  if (isPrize) document.getElementById('claim').onclick = () => { localStorage.setItem(OPENED_KEY, myId); screenPrize(reward); };
+  bindBoard();
 }
 
 function screenPrize(p) {
@@ -1331,18 +1330,6 @@ function screenPrize(p) {
       <p class="label">${esc(p.label || '상품')}</p>
       <div class="barcode"><img src="${p.image}" alt="쿠폰 바코드"></div>
       <p class="note">☀️ <b>화면 밝기를 최대로</b> 올려주세요<br>📸 <b>이 화면을 캡처</b>해두세요</p>
-    </div>
-    ${boardToggle()}
-  `);
-  bindBoard();
-}
-
-function screenConsolation(c) {
-  render(`
-    <div class="reveal">
-      <p class="rank" style="font-size:2.6rem">${c.rank}<small>등</small></p>
-      <p class="ctext">${esc(c.text || '')}</p>
-      ${c.url ? `<a class="goodeal-btn" href="${esc(c.url)}" target="_blank" rel="noopener">플링크 7% 할인 받기</a>` : ''}
     </div>
     ${boardToggle()}
   `);
@@ -1524,14 +1511,14 @@ function showDevMode() {
   $('modal').innerHTML = `<div class="mbox">
     <h2>🛠 개발자 모드</h2>
     <p class="sub">테스트 참가자를 이 방에 채웁니다 (실제 입장과 동일하게 서버에 기록)</p>
-    <input type="number" id="devN" value="30" min="1" max="300" inputmode="numeric">
+    <input type="number" id="devN" value="30" min="1" max="600" inputmode="numeric">
     <p class="err" id="devErr"></p>
     <div class="btns"><button class="ghost" id="devCancel">닫기</button><button id="devAdd">추가</button></div>
   </div>`;
   $('modal').classList.remove('hide');
   $('devCancel').onclick = () => { $('modal').classList.add('hide'); pollLobby(); };
   $('devAdd').onclick = async e => {
-    const n = Math.max(1, Math.min(300, parseInt($('devN').value, 10) || 0));
+    const n = Math.max(1, Math.min(600, parseInt($('devN').value, 10) || 0));
     e.target.disabled = true; e.target.textContent = '추가 중…';
     const tag = Math.random().toString(36).slice(2, 5);
     let ok = 0;
