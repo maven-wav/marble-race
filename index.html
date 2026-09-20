@@ -1025,7 +1025,7 @@ const ERR = {
   ROOM_NOT_FOUND:       '방 코드를 다시 확인해주세요.',
   GAME_ALREADY_STARTED: '이미 레이스가 시작되어 입장할 수 없습니다.',
   BAD_NICK:             '이름은 1~14자로 입력해주세요.',
-  FORBIDDEN:            '호스트 키가 서버와 다릅니다.',
+  FORBIDDEN:            '이 방을 만든 기기에서만 진행할 수 있습니다.',
   BAD_MASTER_KEY:       'PIN 이 올바르지 않습니다.',
   NOT_ENOUGH_PLAYERS:   '2명 이상 입장해야 시작할 수 있습니다.',
   NOT_PRIZE_ROOM:       '이 방은 상품이 걸린 판이 아닙니다.',
@@ -1051,7 +1051,13 @@ async function rpc(fn, args = {}) {
   }
   return t ? JSON.parse(t) : null;
 }
-const hostRpc = (fn, args = {}) => rpc(fn, Object.assign({ p_key: CONFIG.HOST_KEY }, args));
+const HOST_TOKEN_KEY = 'marble_host_token'; // 방 비밀 토큰 — 서버가 방 생성 시 만든 기기에만 준다
+// 호스트 RPC — 호스트 키 + 방 토큰을 붙인다. 토큰은 방을 만든 기기만 갖고 있어 남의 방은 조회·조작 불가
+const hostRpc = (fn, args = {}) => {
+  const a = Object.assign({ p_key: CONFIG.HOST_KEY }, args);
+  if (a.p_room) a.p_token = localStorage.getItem(HOST_TOKEN_KEY) || '';
+  return rpc(fn, a);
+};
 
 const $ = id => document.getElementById(id);
 const MEDAL = ['🥇', '🥈', '🥉'];
@@ -1393,6 +1399,7 @@ function leaveHost() {
   running = false;
   localStorage.removeItem(HOST_ROOM_KEY);
   localStorage.removeItem(HOST_PID_KEY);
+  localStorage.removeItem(HOST_TOKEN_KEY);
   room = null; mode = 'entry';
   HSCREENS.forEach(s => $(s).classList.add('hide'));
   $('floaters').classList.add('hide');
@@ -1406,6 +1413,7 @@ async function createRoom(name, master) {
   const btn = $('create'); if (btn) { btn.disabled = true; btn.textContent = '만드는 중…'; }
   try {
     const r = await hostRpc('marble_host_create_room', { p_master: master, p_title: name });
+    localStorage.setItem(HOST_TOKEN_KEY, r.host_token);
     hostName = name;
     // 방장도 같이 달린다 — 자기 방에 첫 참가자로 입장
     const j = await rpc('marble_join_game', { p_code: r.code, p_nick: name });
@@ -1422,7 +1430,10 @@ async function createRoom(name, master) {
 
 async function openHostRoom(id) {
   try { room = await hostRpc('marble_host_room_state', { p_room: id }); }
-  catch (e) { localStorage.removeItem(HOST_ROOM_KEY); screenEntry(errMsg(e, '방을 열 수 없습니다.')); return; }
+  catch (e) {
+    localStorage.removeItem(HOST_ROOM_KEY); localStorage.removeItem(HOST_PID_KEY); localStorage.removeItem(HOST_TOKEN_KEY);
+    screenEntry(errMsg(e, '방을 열 수 없습니다.')); return;
+  }
   localStorage.setItem(HOST_ROOM_KEY, room.room_id);
   clearTimeout(timer); myId = null;      // 이 기기는 호스트 — 참가자 폴링은 끈다
   if (room.status === 'result') showHostResult();
