@@ -580,6 +580,24 @@ button.goodeal-btn:disabled{opacity:.6}
 .foot{text-align:center;color:#A9A48C;font-size:.72rem;padding-top:14px;font-weight:700}
 @keyframes pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.05);opacity:1}100%{transform:scale(1);opacity:1}}
 .pop{animation:pop .4s ease-out both}
+
+/* 결과 화면 설문 (상품판에서만) */
+.survey{width:100%;background:var(--paper);border:3px solid var(--navy);border-radius:22px;padding:18px 16px;
+  box-shadow:0 6px 0 var(--navy);display:flex;flex-direction:column;gap:12px;text-align:center}
+.survey h3{margin:0;font-size:1.15rem;font-weight:900;color:var(--navy)}
+.survey .q{margin:0;font-size:.95rem;line-height:1.55;font-weight:800;color:var(--ink);word-break:keep-all}
+.survey .q b{background:var(--yellow);padding:0 .2em;border-radius:6px}
+.survey .opts{display:flex;flex-direction:column;gap:8px}
+.survey .opts button{background:var(--paper);color:var(--ink);padding:13px 16px;font-size:1.02rem}
+.survey .thanks{margin:0;font-size:1rem;font-weight:900;color:var(--navy)}
+.survey .hint{margin:0;font-size:.82rem;color:var(--dim);font-weight:700}
+.survey textarea{width:100%;min-height:76px;resize:none;padding:12px 14px;font-size:.98rem;font-family:inherit;font-weight:700;
+  border:3px solid var(--navy);border-radius:14px;background:#fff;color:var(--ink);outline:none;line-height:1.5}
+.survey textarea:focus{box-shadow:0 0 0 3px var(--yellow)}
+.survey textarea::placeholder{color:#A0A3B8;font-weight:700}
+.survey .btns{display:flex;gap:8px}
+.survey .btns button{padding:12px;font-size:.98rem}
+.survey .done{margin:0;font-size:1rem;font-weight:900;color:var(--navy);padding:6px 0}
 </style>
 </head>
 <body>
@@ -1398,10 +1416,12 @@ function screenRank(s) {
       ? `<button class="goodeal-btn" id="claim">🎁 상품 받기</button>`
       : `${reward && reward.text ? `<p class="ctext">${esc(reward.text)}</p>` : ''}
          ${reward && reward.url ? `<a class="goodeal-btn" href="${esc(reward.url)}" target="_blank" rel="noopener">플링크 7% 할인 받기</a>` : ''}`}
+    ${isPrize ? '' : surveyCard()}
     ${boardToggle()}
   `);
   if (top3) confetti();
   if (isPrize) document.getElementById('claim').onclick = () => { localStorage.setItem(OPENED_KEY, myId); screenPrize(reward); };
+  else bindSurvey();
   bindBoard();
 }
 
@@ -1413,9 +1433,59 @@ function screenPrize(p) {
       <div class="barcode"><img src="${p.image}" alt="쿠폰 바코드"></div>
       <p class="note">☀️ <b>화면 밝기를 최대로</b> 올려주세요<br>📸 <b>이 화면을 캡처</b>해두세요</p>
     </div>
+    ${surveyCard()}
     ${boardToggle()}
   `);
+  bindSurvey();
   bindBoard();
+}
+
+/* 설문 — 상품판(is_prize_room)에서만. 서버 survey 상태로 단계 결정: 미응답 → 질문 / 응답함 → 한 마디(선택) / 의견까지 → 완료 */
+function surveyCard() {
+  if (!reward || !reward.is_prize_room) return '';
+  const sv = reward.survey;
+  if (!sv) return `
+    <div class="survey" id="survey">
+      <h3>하나만 여쭤볼게요 🙏</h3>
+      <p class="q">점심시간에 <b>카카오페이</b>에서 친구랑 이런 내기 하고,<br>진 사람이 <b>굿딜 할인</b>으로 커피 사는 기능이 나오면?</p>
+      <div class="opts">
+        <button data-v="yes">쓸게요 👍</button>
+        <button data-v="maybe">모르겠어요 🤔</button>
+        <button data-v="no">안 써요 🙅</button>
+      </div>
+    </div>`;
+  if (!sv.commented) return `
+    <div class="survey" id="survey">
+      <p class="thanks">응답 고마워요 🙌</p>
+      <p class="hint">한 마디 더 남겨주시면 큰 힘이 돼요 (선택)</p>
+      <textarea id="svText" maxlength="500" placeholder="예) 점심마다 팀이랑 하는데 진짜 나오면 쓸 듯"></textarea>
+      <div class="btns"><button class="ghost" id="svSkip">건너뛰기</button><button id="svSend">보내기</button></div>
+    </div>`;
+  return `<div class="survey" id="survey"><p class="done">의견 보냈어요 ✓ 고마워요!</p></div>`;
+}
+function bindSurvey() {
+  const box = document.getElementById('survey');
+  if (!box) return;
+  const swap = () => { box.outerHTML = surveyCard(); bindSurvey(); };
+  box.querySelectorAll('.opts button').forEach(b => b.onclick = async () => {
+    box.querySelectorAll('button').forEach(x => x.disabled = true);
+    b.classList.add('busy');
+    try { await rpc('marble_survey_vote', { p_id: myId, p_answer: b.dataset.v }); }
+    catch (e) { alert(errMsg(e, '저장에 실패했어요. 다시 눌러주세요.')); box.querySelectorAll('button').forEach(x => x.disabled = false); b.classList.remove('busy'); return; }
+    reward.survey = { answer: b.dataset.v, commented: false };
+    swap();
+  });
+  const send = document.getElementById('svSend'), skip = document.getElementById('svSkip');
+  if (skip) skip.onclick = () => box.remove();
+  if (send) send.onclick = async () => {
+    const t = document.getElementById('svText').value.trim();
+    if (!t) return skip.onclick();
+    send.disabled = skip.disabled = true; send.classList.add('busy');
+    try { await rpc('marble_survey_comment', { p_id: myId, p_comment: t }); }
+    catch (e) { alert(errMsg(e, '전송에 실패했어요. 다시 눌러주세요.')); send.disabled = skip.disabled = false; send.classList.remove('busy'); return; }
+    reward.survey.commented = true;
+    swap();
+  };
 }
 
 /* 3단계 — 전체 순위. 기본 접힘, 펼칠 때 로드 */
