@@ -422,6 +422,15 @@ button.danger{width:auto;background:transparent;border:1px solid #4a2230;color:#
   padding:14px 4vw calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(7,9,18,.9);z-index:10}
 #bar:empty{display:none}
 
+/* 대기실 — 떠다니는 참가자 이름 */
+#floaters{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.fl{position:absolute;animation:bob var(--d) ease-in-out infinite alternate}
+.fl span{display:block;padding:6px 13px;border-radius:999px;background:rgba(108,123,255,.16);border:1px solid rgba(108,123,255,.4);
+  color:#d5d9ff;font-weight:800;font-size:clamp(.8rem,1.3vw,1.1rem);white-space:nowrap;max-width:14ch;overflow:hidden;text-overflow:ellipsis;
+  animation:flin .5s cubic-bezier(.2,1.3,.5,1) both}
+@keyframes flin{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:scale(1)}}
+@keyframes bob{0%{transform:translate(0,0)}100%{transform:translate(var(--dx),var(--dy))}}
+
 /* 레이스 */
 #race{flex-direction:row;align-items:stretch;gap:0;padding:0 0 calc(84px + env(safe-area-inset-bottom));overflow:hidden}
 canvas#cv{flex:1 1 0;min-width:0;display:block;height:auto}
@@ -540,6 +549,7 @@ button.busy::after{content:'';position:absolute;inset:0;margin:auto;width:22px;h
 <div class="foot">구슬 레이스 추첨</div>
 
 <!-- 호스트 -->
+<div id="floaters" class="hide"></div>
 <div id="hlobby" class="hscreen hide"></div>
 <div id="race" class="hscreen hide">
   <canvas id="cv"></canvas>
@@ -1358,6 +1368,7 @@ function showHost(id) {
   clearTimeout(lobbyTimer);
   document.body.classList.add('host');
   HSCREENS.forEach(s => $(s).classList.toggle('hide', s !== id));
+  $('floaters').classList.toggle('hide', id !== 'hlobby');
   $('modal').classList.add('hide');
 }
 function leaveHost() {
@@ -1366,6 +1377,7 @@ function leaveHost() {
   localStorage.removeItem(HOST_ROOM_KEY);
   room = null; mode = 'entry';
   HSCREENS.forEach(s => $(s).classList.add('hide'));
+  $('floaters').classList.add('hide');
   bar.innerHTML = '';
   document.body.classList.remove('host');
   screenEntry();
@@ -1408,9 +1420,8 @@ function showHostLobby() {
     <div class="codebig">${esc(room.code)}</div>
     <div class="qrbox" id="qr"></div>
     <p class="hsub">QR 을 스캔하거나 방 코드를 입력해서 참가 · <b id="cnt">${room.join_count}</b> 명</p>
-    <p class="url">${esc(url)}</p>
     <div class="hbadges">
-      <span class="badge">👑 ${esc(room.title || hostName)}</span>
+      <span class="badge">방장 : ${esc(room.title || hostName)}</span>
       ${room.is_prize ? '<span class="badge prize">🎁 상품 걸린 판</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
     </div>`;
   try {
@@ -1418,13 +1429,38 @@ function showHostLobby() {
     QRMini.draw(c, url, '#000000', '#ffffff');
     $('qr').appendChild(c);
   } catch (e) { $('qr').textContent = 'QR 생성 실패'; }
+  $('floaters').innerHTML = ''; floaterEls = {};
+  renderFloaters(room.players || []);
   bar.innerHTML = `<button class="big" id="begin">시작하기</button>
-                   <button class="ghost sm" id="settings">${room.is_prize ? '🎁 쿠폰·멘트 설정' : '💬 멘트 설정'}</button>
+                   ${room.is_prize ? '<button class="ghost sm" id="settings">🎁 쿠폰 등록</button>' : ''}
                    <button class="ghost sm" id="hleave">나가기</button>`;
   $('begin').onclick = startRace;
-  $('settings').onclick = showSettings;
+  if ($('settings')) $('settings').onclick = showSettings;
   $('hleave').onclick = leaveHost;
   pollLobby();
+}
+
+// 참가자 이름표 — 누가 들어왔는지 보이게 화면 양옆에 둥둥. 새로 온 사람은 톡 튀어나오고, 나간 사람은 빠진다
+let floaterEls = {};
+function renderFloaters(players) {
+  const layer = $('floaters'); if (!layer) return;
+  const seen = {};
+  players.forEach(p => {
+    seen[p.id] = true;
+    if (floaterEls[p.id]) return;
+    const d = document.createElement('div');
+    d.className = 'fl';
+    const left = Math.random() < .5;                       // QR 이 있는 가운데는 비워둔다
+    d.style.left = (left ? 2 + Math.random() * 24 : 72 + Math.random() * 24) + '%';
+    d.style.top  = (3 + Math.random() * 88) + '%';
+    d.style.setProperty('--dx', (Math.random() * 40 - 20).toFixed(0) + 'px');
+    d.style.setProperty('--dy', (Math.random() * 40 - 20).toFixed(0) + 'px');
+    d.style.setProperty('--d',  (3 + Math.random() * 3).toFixed(1) + 's');
+    d.innerHTML = `<span>${esc(p.nick)}</span>`;
+    layer.appendChild(d);
+    floaterEls[p.id] = d;
+  });
+  for (const id in floaterEls) if (!seen[id]) { floaterEls[id].remove(); delete floaterEls[id]; }
 }
 
 async function pollLobby() {
@@ -1432,6 +1468,7 @@ async function pollLobby() {
   try {
     room = await hostRpc('marble_host_room_state', { p_room: room.room_id });
     const el = $('cnt'); if (el) el.textContent = room.join_count;
+    renderFloaters(room.players || []);
   } catch (_) {}
   if (mode === 'hlobby') lobbyTimer = setTimeout(pollLobby, CONFIG.LOBBY_POLL_MS);
 }
@@ -1569,7 +1606,7 @@ async function showHostResult() {
   const order = [1, 0, 2].filter(i => top[i]);   // 시상대: 2등 · 1등 · 3등
   $('hresult').innerHTML = `
     <div class="hbadges">
-      <span class="badge">👑 ${esc(room.title || hostName)}</span>
+      <span class="badge">방장 : ${esc(room.title || hostName)}</span>
       ${room.is_prize ? '<span class="badge prize">🎁 상품 걸린 판</span>' : '<span class="badge practice">연습판 · 상품 없음</span>'}
     </div>
     <h1>축하합니다 🎉</h1>
