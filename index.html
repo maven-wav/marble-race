@@ -409,7 +409,7 @@ button.link:hover{color:var(--ink)}
 .hsub{color:var(--dim);font-size:clamp(1rem,2vw,1.6rem);margin:0;line-height:1.5}
 .hsub b{color:var(--ink)}
 .lbl{color:var(--dim);font-size:clamp(.9rem,1.6vw,1.3rem);font-weight:800;letter-spacing:.14em}
-.codebig{font-family:ui-monospace,Menlo,monospace;font-size:clamp(3rem,9vw,7rem);font-weight:900;letter-spacing:.14em;line-height:1;color:var(--accent)}
+.codebig{cursor:default;user-select:none;-webkit-user-select:none;font-family:ui-monospace,Menlo,monospace;font-size:clamp(3rem,9vw,7rem);font-weight:900;letter-spacing:.14em;line-height:1;color:var(--accent)}
 .qrbox{background:#fff;padding:18px;border-radius:22px;display:flex}
 .qrbox canvas{display:block;width:min(42vh,440px);height:min(42vh,440px)}
 .url{font-family:ui-monospace,Menlo,monospace;font-size:clamp(.8rem,1.3vw,1.05rem);color:var(--dim);word-break:break-all;max-width:40ch;margin:0}
@@ -1355,6 +1355,7 @@ function bindBoard() {
    호스트
    ============================================================ */
 const HOST_ROOM_KEY = 'marble_host_room';
+const HOST_PID_KEY  = 'marble_host_pid';    // 방장 본인의 참가자 id (방장도 구슬로 달린다)
 let room = null;              // marble_host_room_state 결과
 let hostName = localStorage.getItem('marble_nick') || '';
 let mode = 'entry';           // entry | hlobby | race | hresult
@@ -1371,10 +1372,18 @@ function showHost(id) {
   $('floaters').classList.toggle('hide', id !== 'hlobby');
   $('modal').classList.add('hide');
 }
+// 방 폭파 — 참가자를 전부 지우고 나간다. 참가자 폰은 세션이 사라진 걸 보고 입구로 돌아간다
+async function closeRoom() {
+  if (!confirm('방을 닫을까요? 참가자들은 모두 나가집니다.')) return;
+  try { if (room) await hostRpc('marble_host_reset', { p_room: room.room_id }); }
+  catch (e) { if (!confirm('참가자 정리에 실패했습니다. 그래도 나갈까요?')) return; }
+  leaveHost();
+}
 function leaveHost() {
   clearTimeout(lobbyTimer);
   running = false;
   localStorage.removeItem(HOST_ROOM_KEY);
+  localStorage.removeItem(HOST_PID_KEY);
   room = null; mode = 'entry';
   HSCREENS.forEach(s => $(s).classList.add('hide'));
   $('floaters').classList.add('hide');
@@ -1389,6 +1398,9 @@ async function createRoom(name, master) {
   try {
     const r = await hostRpc('marble_host_create_room', { p_master: master, p_title: name });
     hostName = name;
+    // 방장도 같이 달린다 — 자기 방에 첫 참가자로 입장
+    const j = await rpc('marble_join_game', { p_code: r.code, p_nick: name });
+    localStorage.setItem(HOST_PID_KEY, j.player_id);
     await openHostRoom(r.room_id);
     return null;
   } catch (e) {
@@ -1436,7 +1448,13 @@ function showHostLobby() {
                    <button class="ghost sm" id="hleave">나가기</button>`;
   $('begin').onclick = startRace;
   if ($('settings')) $('settings').onclick = showSettings;
-  $('hleave').onclick = leaveHost;
+  // 개발자 모드 — 방 코드를 5번 탭하면 테스트 참가자를 채운다 (폰 여러 대 없이 인원 테스트)
+  let taps = 0, tapTimer = null;
+  $('hlobby').querySelector('.codebig').onclick = () => {
+    taps++; clearTimeout(tapTimer); tapTimer = setTimeout(() => { taps = 0; }, 3000);
+    if (taps >= 5) { taps = 0; showDevMode(); }
+  };
+  $('hleave').onclick = closeRoom;
   pollLobby();
 }
 
@@ -1461,6 +1479,34 @@ function renderFloaters(players) {
     floaterEls[p.id] = d;
   });
   for (const id in floaterEls) if (!seen[id]) { floaterEls[id].remove(); delete floaterEls[id]; }
+}
+
+function showDevMode() {
+  clearTimeout(lobbyTimer);
+  $('modal').innerHTML = `<div class="mbox">
+    <h2>🛠 개발자 모드</h2>
+    <p class="sub">테스트 참가자를 이 방에 채웁니다 (실제 입장과 동일하게 서버에 기록)</p>
+    <input type="number" id="devN" value="30" min="1" max="300" inputmode="numeric">
+    <p class="err" id="devErr"></p>
+    <div class="btns"><button class="ghost" id="devCancel">닫기</button><button id="devAdd">추가</button></div>
+  </div>`;
+  $('modal').classList.remove('hide');
+  $('devCancel').onclick = () => { $('modal').classList.add('hide'); pollLobby(); };
+  $('devAdd').onclick = async e => {
+    const n = Math.max(1, Math.min(300, parseInt($('devN').value, 10) || 0));
+    e.target.disabled = true; e.target.textContent = '추가 중…';
+    const tag = Math.random().toString(36).slice(2, 5);
+    let ok = 0;
+    for (let i = 0; i < n; i += 20) {   // 20명씩 묶어서
+      const batch = [];
+      for (let k = i; k < Math.min(n, i + 20); k++)
+        batch.push(rpc('marble_join_game', { p_code: room.code, p_nick: `테스트${tag}${k + 1}` }).then(() => ok++, () => {}));
+      await Promise.all(batch);
+    }
+    toast(`${ok}명 추가됨`);
+    $('modal').classList.add('hide');
+    pollLobby();
+  };
 }
 
 async function pollLobby() {
@@ -1618,15 +1664,43 @@ async function showHostResult() {
       : '연습판입니다 — 모든 참가자 폰에는 등수와 아쉬움 멘트가 표시됩니다'}</p>
     <div class="hboard">${rows.map(x =>
       `<div class="brow ${x.rank <= 3 ? 'top' : ''}"><span class="r">${x.rank}</span><span class="nm">${esc(x.nick)}</span></div>`).join('')}</div>`;
-  bar.innerHTML = `<button class="danger" id="reset">초기화 (참가자 비우기)</button>
+  bar.innerHTML = `<button class="ghost sm" id="myReward">🎁 방장 결과 보기</button>
+                   <button class="danger" id="reset">초기화 (참가자 비우기)</button>
                    <button class="ghost sm" id="hleave">나가기</button>`;
   $('reset').onclick = doReset;
-  $('hleave').onclick = leaveHost;
+  $('hleave').onclick = closeRoom;
+  $('myReward').onclick = showHostReward;
+}
+
+// 방장 본인의 결과 — 참가자 폰과 같은 규칙 (kind 만 보고 분기)
+async function showHostReward() {
+  const pid = localStorage.getItem(HOST_PID_KEY);
+  if (!pid) { toast('방장 참가 기록이 없습니다'); return; }
+  let rw;
+  try { rw = await rpc('marble_my_reward', { p_id: pid }); }
+  catch (e) { alert(errMsg(e, '결과를 불러오지 못했습니다.')); return; }
+  $('modal').innerHTML = `<div class="mbox">
+    ${rw.kind === 'prize' ? `
+      <h2>${MEDAL[rw.rank - 1] || ''} ${rw.rank}등 · ${esc(rw.label || '상품')}</h2>
+      <div class="barcode"><img src="${rw.image}" alt="쿠폰 바코드"></div>
+      <p class="note">📸 이 화면을 캡처해두세요</p>` : `
+      <h2>${rw.rank}등</h2>
+      <p class="ctext">${esc(rw.text || '')}</p>
+      ${rw.url ? `<a class="goodeal-btn" href="${esc(rw.url)}" target="_blank" rel="noopener">플링크 7% 할인 받기</a>` : ''}`}
+    <button class="ghost" id="mclose">닫기</button>
+  </div>`;
+  $('modal').classList.remove('hide');
+  $('mclose').onclick = () => $('modal').classList.add('hide');
 }
 
 async function doReset() {
   if (!confirm('이 방의 참가자와 결과를 모두 지우고 대기실로 돌아갑니다. 쿠폰·멘트는 유지됩니다. 진행할까요?')) return;
-  try { await hostRpc('marble_host_reset', { p_room: room.room_id }); await openHostRoom(room.room_id); }
+  try {
+    await hostRpc('marble_host_reset', { p_room: room.room_id });
+    const j = await rpc('marble_join_game', { p_code: room.code, p_nick: room.title || hostName });   // 방장 다시 입장
+    localStorage.setItem(HOST_PID_KEY, j.player_id);
+    await openHostRoom(room.room_id);
+  }
   catch (e) { alert(errMsg(e, '초기화 실패')); }
 }
 
