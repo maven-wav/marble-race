@@ -1081,12 +1081,12 @@ function screenEntry(err = '') {
   nick.onkeydown = e => { if (e.key === 'Enter') $('join').click(); };
   if ($('code')) $('code').onkeydown = e => { if (e.key === 'Enter') $('join').click(); };
   if ($('create')) $('create').onclick = () => { const v = getNick(); if (v) createRoom(v, null); };
-  // 숨은 입구 — 주사위를 7번 누르면 상품 모드(PIN)
+  // 숨은 입구 — 주사위를 7번 누르면 상품 모드(PIN). 탭 사이가 3초를 넘으면 처음부터
   let taps = 0, tapTimer = null;
   $('dice').onclick = () => {
     if (urlCode) return;
     taps++;
-    clearTimeout(tapTimer); tapTimer = setTimeout(() => { taps = 0; }, 1500);
+    clearTimeout(tapTimer); tapTimer = setTimeout(() => { taps = 0; }, 3000);
     if (taps < 7) return;
     taps = 0;
     const v = getNick(); if (v) askPin(v);
