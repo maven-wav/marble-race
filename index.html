@@ -483,10 +483,13 @@ canvas#cv{flex:1 1 0;min-width:0;display:block;height:100%;margin:0!important}
 .lrow .n{width:1.8em;text-align:right;font-variant-numeric:tabular-nums;color:#7C82B8;font-weight:800}
 .lrow .dot{width:12px;height:12px;border-radius:50%;flex:none;border:2px solid var(--navy)}
 .lrow .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#big{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
-#big span{font-size:clamp(2.6rem,8vw,6.5rem);font-weight:900;letter-spacing:-.03em;opacity:0;visibility:hidden;
-  padding:.18em .55em;border-radius:.3em;background:var(--navy);border:4px solid currentColor;white-space:nowrap;
-  box-shadow:0 8px 0 rgba(0,0,0,.35);transition:opacity .2s,transform .2s;transform:translateY(16px)}
+/* 골인 안내 — 카메라가 선두를 화면 62% 높이에 두므로, 구슬이 없는 캔버스 아래쪽(결승선 너머)에 작게 띄운다.
+   좌우 범위는 announce() 가 캔버스 위치에 맞춘다 (오른쪽 순위 패널을 가리지 않게) */
+#big{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:5;
+  padding-bottom:calc(84px + 24px + env(safe-area-inset-bottom))}
+#big span{font-size:clamp(1.5rem,3.6vw,3rem);font-weight:900;letter-spacing:-.03em;opacity:0;visibility:hidden;
+  padding:.18em .55em;border-radius:.3em;background:rgba(30,33,64,.82);border:3px solid currentColor;white-space:nowrap;
+  box-shadow:0 5px 0 rgba(0,0,0,.35);transition:opacity .2s,transform .2s;transform:translateY(16px)}
 #big span.on{opacity:1;visibility:visible;transform:none}
 
 /* 호스트 결과 */
@@ -1820,6 +1823,9 @@ function announce(m) {
   const last = marbles.length - m.rank;   // 0이면 꼴등
   if (m.rank > 3 && last >= 3) return;    // 큰 글씨는 1~3등과 꼴등 3명만
   bigEl.textContent = m.rank > 3 ? `${last ? `뒤에서 ${last + 1}등` : '꼴등'}  ${m.name}` : `${m.rank}등  ${m.name}`;
+  // 캔버스 가운데에 — 단, 캔버스가 좁아(폰) 글자가 넘치면 화면 전체 기준
+  const cr = cv.getBoundingClientRect(), fit = bigEl.offsetWidth <= cr.width;
+  bigEl.parentNode.style.left = fit ? cr.left + 'px' : ''; bigEl.parentNode.style.right = fit ? (innerWidth - cr.right) + 'px' : '';
   bigEl.style.color = ['#fbbf24','#cbd5e1','#d97757'][m.rank - 1] || '#fff';
   bigEl.classList.add('on');
   clearTimeout(bigTimer); bigTimer = setTimeout(() => bigEl.classList.remove('on'), 2200);
