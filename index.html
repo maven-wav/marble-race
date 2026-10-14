@@ -1072,8 +1072,8 @@ function draw() {
 const podiumEl = document.getElementById('podium');
 const liveEl   = document.getElementById('live');
 const RK = ['g','s','b'];
-// 참가자가 3명 미만이면 있는 만큼만 골인하면 끝 (2명이면 2등까지)
-function winnersNeeded() { return Math.min(CONFIG.WINNERS, marbles.length); }
+// 꼴등까지 가려야 하니 마지막 구슬이 골인할 때까지 진행
+function winnersNeeded() { return marbles.length; }
 function renderPodium() {
   let h = '';
   for (let i = 0; i < CONFIG.WINNERS; i++) {
@@ -1816,11 +1816,13 @@ async function startRace() {
 const bigEl = $('bigtxt');
 function announce(m) {
   renderPodium();
-  bigEl.textContent = `${m.rank}등  ${m.name}`;
+  if (finished.length >= winnersNeeded()) finishRace();
+  const last = marbles.length - m.rank;   // 0이면 꼴등
+  if (m.rank > 3 && last >= 3) return;    // 큰 글씨는 1~3등과 꼴등 3명만
+  bigEl.textContent = m.rank > 3 ? `${last ? `뒤에서 ${last + 1}등` : '꼴등'}  ${m.name}` : `${m.rank}등  ${m.name}`;
   bigEl.style.color = ['#fbbf24','#cbd5e1','#d97757'][m.rank - 1] || '#fff';
   bigEl.classList.add('on');
   clearTimeout(bigTimer); bigTimer = setTimeout(() => bigEl.classList.remove('on'), 2200);
-  if (finished.length >= winnersNeeded()) finishRace();
 }
 let bigTimer = null;
 let raceEnded = false;
@@ -1829,7 +1831,7 @@ function finishRace() {
   raceEnded = true; running = false;
   submitting = submitRanks(); setTimeout(showHostResult, 1700);
 }
-// 1·2·3등이 골인한 그 순간, 나머지는 얼마나 멀리 갔는지로 줄을 세웁니다
+// 시간 초과로 마감되면 못 들어온 구슬은 얼마나 멀리 갔는지로 줄을 세웁니다
 function finalRanking() {
   return [...finished, ...marbles.filter(m => !m.done).sort((a, b) => b.y - a.y)];
 }
